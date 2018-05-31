@@ -1,0 +1,6 @@
+BECONF1: 00beconf1.tfvars
+BECONF2: 00beconf2.tfvars
+BASEVARS: 01base.tfvars
+OCPVARS: 02ocp.tfvars
+RHNVARS: 03rhn.tfvars
+OVERRIDEVARS: local-override.tfvars
