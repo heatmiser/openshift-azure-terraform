@@ -28,12 +28,36 @@ Additional documentation for deploying OpenShift in Azure can be found here: htt
 
 These templates deploy multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using these templates.  Please read the instructions completely before you proceed. 
 
-These template utilize a custom Red Hat Enterprise Linux image built using Hashicorp's Packer image VM image building utility. Forthcoming additions will provide a means for selecting an On-Demand Red Hat Enterprise Linux image from the Azure Gallery. 
->If you use the On-Demand image, there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription, so you will also be using one of your entitlements. This will lead to "double billing".
+These template utilize a custom Red Hat Enterprise Linux image built using Hashicorp's Packer utility for VM image building. Forthcoming additions will provide a means for selecting an On-Demand Red Hat Enterprise Linux image from the Azure Gallery as an alternative to building and deploying roll-your-own VM images. 
+>If you use the On-Demand image, there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription, so you will also be using one of your entitlements. This will lead to "double billing".  Utilizing the On-Demand image will cost more over time, however, getting up and running initially will be quicker as using On-Demand images negates the need to use Packer for base VM image creation.
 
 After successful deployment, the Bastion Node is no longer required unless you want to use it to add nodes or run other playbooks in the future.  You can turn it off and delete it or keep it around for running future playbooks.  You can also use this as the jump host for managing your OpenShift cluster.
 
+Optionally, you can choose to also deploy an OpenVPN node into the master subnet.  This will permit direct connections to all nodes within the cluster using actual node short hostnames, providing a bit of added convenience over a jump host.
+
+Container Native Storage (CNS) and Container Ready Storage (CRS) options
+TO-DO
+
 ## Prerequisites
+
+In order to facillitate the deployment of OpenShift infrastructure and components on Azure, we are going to need the following account, tools, and utilities:
+-   Azure user login with administrator role assigned
+-   Azure CLI 2.0 utility  https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest
+-   Terraform utility   https://www.terraform.io/
+-   Packer utility    https://www.packer.io/
+-   go-task utility  https://github.com/go-task/task
+-   jq               https://stedolan.github.io/jq/
+
+Utilizing a container-based environment to provide the above capabilities is recommended, either via the Azure Cloud Shell or via a local container, as the tools and utilities can be maintained and upgraded separately, while the OpenShift-Azure Terraform project folder and local scripts can be persisted across container versions through a separate volume storage mount.
+
+For local containers, an Azure-CLI based container is a good start...
+-   Official release based on Debian Jessie https://hub.docker.com/r/microsoft/azure-cli/
+-   Developer builds based on Python 3 Alpine Linux image https://hub.docker.com/r/azuresdk/azure-cli-python/
+
+Starting with a Dockerfile or other container image build script, the above list of tools and utilities can be included to build a container image that can then be upgraded/improved on an ongoing basis.  For the go-task utility, recommended to install 64-bit and 32-bit versions, rename as such and symlink to the 'task' the version that works without error, as some base container images might not provided requisite library support for some 64-bit binaries. 
+
+TO-DO Include documentation and project files to provide support for helping users to quickly build their own Azure-CLI container images
+
 
 ### Generate SSH Keys
 
@@ -43,17 +67,9 @@ From a Linux or Mac, you can just use the ssh-keygen command.  Once you are fini
 
 ### Azure Key Vault for storing the SSH Private Key
 
-You will need to create a Key Vault to store your SSH Private Key that will then be used as part of the deployment.  This extra work is to provide security around the Private Key - especially since it does not have a passphrase.  I recommend creating a Resource Group specifically to store the KeyVault.  This way, you can reuse the KeyVault for other deployments and you won't have to create this every time you chose to deploy another OpenShift cluster.
+The ARM template version provides a means for accessing stored Private SSH Keys via Azure Key Vault that will then be pulled down and accessed during deployment.  This is to provide security around the Private Key - especially since it does not have a passphrase.  As of version 0.11.7, Terraform supports creating Key Vaults and Key Vault Keys in Azure, however, it does not provide a means to access them, so currently all public/private key pairs are stored locally in the project directory. Adding support for utilizing Key Vaults and Key Vault Keys in Azure via Terraform is an upcoming feature addition to the project.
 
-**Create Key Vault using Azure CLI 2.0**<br/>
-1.  Create new Resource Group: az group create -n \<name\> -l \<location\><br/>
-    Ex: `az group create -n ResourceGroupName -l 'East US'`<br/>
-1.  Create Key Vault: az keyvault create -n \<vault-name\> -g \<resource-group\> -l \<location\> --enabled-for-template-deployment true<br/>
-    Ex: `az keyvault create -n KeyVaultName -g ResourceGroupName -l 'East US' --enabled-for-template-deployment true`<br/>
-1.  Create Secret: az keyvault secret set --vault-name \<vault-name\> -n \<secret-name\> --file \<private-key-file-name\><br/>
-    Ex: `az keyvault secret set --vault-name KeyVaultName -n SecretName --file ~/.ssh/id_rsa`<br/>
-
-### Generate Azure Active Directory (AAD) Service Principal
+### Azure Active Directory Service Principal
 
 To configure Azure as the Cloud Provider for OpenShift Container Platform, you will need to create an Azure Active Directory Service Principal.  The easiest way to perform this task is via the Azure CLI.  Below are the steps for doing this.
 
