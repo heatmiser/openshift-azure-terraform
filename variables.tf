@@ -202,18 +202,6 @@ variable "connection_private_ssh_key_path" {
   description = "Path to the private ssh key used to connect to machines within the OpenShift cluster."
 }
 
-variable "key_vault_resource_group" {
-  description = "The name of the Resource Group that contains the Key Vault"
-}
-
-variable "key_vault_name" {
-  description = "The name of the Key Vault you will use"
-}
-
-variable "key_vault_secret" {
-  description = "The Secret Name you used when creating the Secret (that contains the Private Key)"
-}
-
 variable "aad_client_id" {
   description = "Azure Active Directory Client ID also known as Application ID for Service Principal"
 }
