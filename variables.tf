@@ -15,7 +15,6 @@ variable "crs_cidr_block" {}
 variable "crs_cidrsubnet_newbits" {}
 variable "images_resource_group" {}
 variable "base_os_image" {}
-variable "openshift_admin_username" {}
 variable "network1_module_name" {}
 variable "network2_module_name" {}
 variable "ocpmaster_module_name" {}
