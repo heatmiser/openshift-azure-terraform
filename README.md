@@ -11,10 +11,10 @@ This project provides Terraform templating for deploying OpenShift Container Pla
 
 |Resource           	|Properties                                                                                                                          |
 |-----------------------|------------------------------------------------------------------------------------------------------------------------------------|
-|Virtual Network   		|**Address prefix:** 10.0.0.0/23<br />**Master subnet:** 10.0.0.0/24<br />**Node subnet:** 10.0.1.0/24                     |
+|Virtual Network   		|**Address prefix:** 10.0.0.0/23<br />**Master subnet:** 10.0.0.0/24<br />**Node subnet:** 10.0.1.0/24<br />**CRS Gluster subnet:** 172.16.144.0/24  (optional)               |
 |Master Load Balancer	|1 probe and 1 rule for TCP 443<br/>                                                                                |
 |Infra Load Balancer	|2 probes and 2 rules for TCP 80 and TCP 443									                                           |
-|Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached to Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
+|Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached to Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer<br />OpenVPN public IP for OpenVPN node (optional)    |
 |Storage Accounts <br />Managed Disks      |2 Storage Accounts for Diagnostics Logs <br />1 Storage Account for Private Docker Registry |
 |Network Security Groups|1 Network Security Group for Bastion VM<br />1 Network Security Group Master VMs<br />1 Network Security Group for Infra VMs<br />1 Network Security Group for Node VMs |
 |Availability Sets      |1 Availability Set for Master VMs<br />1 Availability Set for Infra VMs<br />1 Availability Set for Node VMs  |
