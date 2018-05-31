@@ -1,6 +1,6 @@
 base_os_image = "rhel7basecloudinit"
 
-# Use RHN user password or RHN prod key
+# Use RHN prod activation key
 rhn_passwd = "rhelactivationkeyname"
 
 openvpn_vm_size = "Standard_DS2_v2"
