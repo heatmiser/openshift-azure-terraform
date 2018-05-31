@@ -1,0 +1,24 @@
+base_os_image = "rhel7basecloudinit"
+
+# Use RHN user password or RHN prod key
+rhn_passwd = "rhelactivationkeyname"
+
+openvpn_vm_size = "Standard_DS2_v2"
+
+//crypto_algo_elliptical, set to ec for elliptical curve algo, rsa for RSA
+crypto_algo_elliptical = "ec"
+
+//User name when generating client certificate, sub in underscores for spaces
+//for this setting only
+openvpn_client_cert_name = "Firstname_Lastname"
+
+openvpn_client_cert_city = "Sunnyvale"
+
+openvpn_client_cert_state = "California"
+
+openvpn_client_cert_org = "Hooli Corporation"
+
+//include a preceding double backslash anytime an @ or . are utilized for this setting only
+openvpn_client_cert_email = "noreply\\@hooli\\.com"
+
+openvpn_client_cert_ou = "Hooli Engineering"
