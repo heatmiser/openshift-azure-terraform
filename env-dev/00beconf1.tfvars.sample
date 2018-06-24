@@ -1,0 +1,3 @@
+resource_group_name = "resourcegroupname"
+storage_account_name = "tfstatestorageaccountname"
+key = "tfstatestorageaccountkey"
