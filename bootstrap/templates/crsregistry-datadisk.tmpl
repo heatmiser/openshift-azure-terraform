@@ -1,8 +1,0 @@
-  storage_data_disk {
-    name              = "$${var.project}-$${var.ocpcrs_registry_module_name}-$${format("%02d", count.index)}-p30-disk${DISKNUM}"
-    caching           = "ReadWrite"
-    disk_size_gb      = "$${var.gluster_disk_size}"
-    create_option     = "Empty"
-    lun               = ${LUNNUM}
-    managed_disk_type = "$${var.data_storage_account_tier}_$${var.storage_account_replication_type}"
-  }
