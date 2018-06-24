@@ -14,8 +14,12 @@
 # .tfplan files
 **/*.tfplan
 
+# ssh keys
 !ssh/README.md
 ssh/
+
+# misc
 **/.task/*
 **/*.log
 **/*.out
+**/manifest.json
