@@ -1,0 +1,169 @@
+{
+  "variables": {
+    "version": "1.0",
+    "buildtime": "{{isotime \"2006-01-02-030405\"}}"
+  },
+  "provisioners": [{
+    "type": "shell",
+    "scripts": [
+      "scripts/base-rhel.sh",
+      "scripts/cloud-azure-rhel7.sh",
+      "scripts/rhnunregister.sh",
+      "scripts/cleanup.sh",
+      "scripts/waagent.sh",
+      "scripts/zerodisk.sh",
+      "scripts/nosshpasswords.sh"
+    ],
+    "override": {
+      "rhel-7-cloud-azure": {
+        "execute_command": "sh '{{.Path}}'"
+      }
+    },
+    "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
+  }, {
+    "type": "shell",
+    "scripts": [
+      "scripts/base-rhel.sh",
+      "scripts/cloud-kvm-rhel7.sh",
+      "scripts/rhnunregister.sh",
+      "scripts/cleanup.sh",
+      "scripts/zerodisk.sh",
+      "scripts/nosshpasswords.sh"
+    ],
+    "override": {
+      "rhel-7-cloud-kvm": {
+        "execute_command": "sh '{{.Path}}'"
+      }
+    },
+    "only": ["rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
+  }],
+  "builders": [{
+      "name": "rhel-7-cloud-azure",
+      "vm_name": "rhel-7-cloud-azure-{{ user `buildtime` }}.qcow2",
+      "type": "qemu",
+      "qemuargs": [
+        [ "-m", "1024" ]
+      ],
+      "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
+      "iso_checksum_type": "sha256",
+      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "ssh_wait_timeout": "30s",
+      "shutdown_command": "shutdown -P now",
+      "disk_size": 51200,
+      "format": "qcow2",
+      "output_directory": "rhel-7-cloud-azure-{{ user `buildtime` }}",
+      "headless": true,
+      "accelerator": "kvm",
+      "http_directory": "http",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+      "ssh_host_port_min": 2222,
+      "ssh_host_port_max": 2229,
+      "ssh_username": "root",
+      "ssh_password": "changeme",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "90m",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_command": [
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg<enter><wait>"
+      ]
+    },{
+      "name": "rhel-7-cloud-ci-azure",
+      "vm_name": "rhel-7-cloud-ci-azure-{{ user `buildtime` }}.qcow2",
+      "type": "qemu",
+      "qemuargs": [
+        [ "-m", "1024" ]
+      ],
+      "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
+      "iso_checksum_type": "sha256",
+      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "ssh_wait_timeout": "30s",
+      "shutdown_command": "shutdown -P now",
+      "disk_size": 51200,
+      "format": "qcow2",
+      "output_directory": "rhel-7-cloud-ci-azure-{{ user `buildtime` }}",
+      "headless": true,
+      "accelerator": "kvm",
+      "http_directory": "http",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+      "ssh_host_port_min": 2222,
+      "ssh_host_port_max": 2229,
+      "ssh_username": "root",
+      "ssh_password": "changeme",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "90m",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_command": [
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-ci-azure-ks.cfg<enter><wait>"
+      ]
+    },{
+      "name": "rhel-7-cloud-kvm",
+      "vm_name": "rhel-7-cloud-kvm-{{ user `buildtime` }}.qcow2",
+      "type": "qemu",
+      "qemuargs": [
+        [ "-m", "1024" ]
+      ],
+      "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
+      "iso_checksum_type": "sha256",
+      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "ssh_wait_timeout": "30s",
+      "shutdown_command": "shutdown -P now",
+      "disk_size": 51200,
+      "format": "qcow2",
+      "output_directory": "rhel-7-cloud-kvm-{{ user `buildtime` }}",
+      "headless": false,
+      "accelerator": "kvm",
+      "http_directory": "http",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+      "ssh_host_port_min": 2222,
+      "ssh_host_port_max": 2229,
+      "ssh_username": "root",
+      "ssh_password": "changeme",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "90m",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_command": [
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-kvm-ks.cfg<enter><wait>"
+      ]
+    },{
+      "name": "rhel-7-cloud-ci-kvm",
+      "vm_name": "rhel-7-cloud-ci-kvm-{{ user `buildtime` }}.qcow2",
+      "type": "qemu",
+      "qemuargs": [
+        [ "-m", "1024" ]
+      ],
+      "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
+      "iso_checksum_type": "sha256",
+      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "ssh_wait_timeout": "30s",
+      "shutdown_command": "shutdown -P now",
+      "disk_size": 51200,
+      "format": "qcow2",
+      "output_directory": "rhel-7-cloud-ci-kvm-{{ user `buildtime` }}",
+      "headless": false,
+      "accelerator": "kvm",
+      "http_directory": "http",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+      "ssh_host_port_min": 2222,
+      "ssh_host_port_max": 2229,
+      "ssh_username": "root",
+      "ssh_password": "changeme",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "90m",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_command": [
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-ci-kvm-ks.cfg<enter><wait>"
+      ]
+    }],
+    "type": "manifest",
+    "output": "manifest.json",
+    "strip_path": true,
+    "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure", "rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
+      }
