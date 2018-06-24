@@ -1,0 +1,131 @@
+version: '2'
+
+tasks:
+
+  zdeploy:
+    desc: execute complete terraform deploy for specific component tier
+    cmds:
+      - task: init
+        vars:  {TFWORKDIR: "{{.TFWORKDIR}}"}
+      - task: plan
+        vars:  {TFWORKDIR: "{{.TFWORKDIR}}"}
+      - task: apply
+        vars:  {TFWORKDIR: "{{.TFWORKDIR}}"}
+      - echo "terraform {{.TFWORKDIR}} deploy complete"
+
+  init:
+    desc: initialize specific terraform deployment directory
+    cmds:
+      - invoke tfinit "{{.TFWORKDIR}}" --beconf='"{{.BECONF1}}","{{.BECONF2}}"'
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+      BECONF1: "{{.BECONF1}}"
+      BECONF2: "{{.BECONF2}}"
+
+  plan:
+    desc: create terraform plan
+    cmds:
+      - invoke tfplan "{{.TFWORKDIR}}" --planout="{{.PLANDATE}}.tfplan" --varfile='"{{.BASEVARS}}","{{.OCPVARS}}","{{.RHNVARS}}","{{.BECONF1}}","{{.BECONF2}}"'
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+      PLANDATE: p{{now | date "2006-01-02T15.04"}}
+      BASEVARS: "{{.BASEVARS}}"
+      OCPVARS: "{{.OCPVARS}}"
+      RHNVARS: "{{.RHNVARS}}"
+      BECONF1: "{{.BECONF1}}"
+      BECONF2: "{{.BECONF2}}"
+
+  destroyplan:
+    desc: create terraform destroy plan
+    cmds:
+      - invoke tfdestroyplan "{{.TFWORKDIR}}" --planout="{{.PLANDATE}}.DESTROY.tfplan" --varfile='"{{.BASEVARS}}","{{.OCPVARS}}","{{.RHNVARS}}","{{.BECONF1}}","{{.BECONF2}}"'
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+      PLANDATE: p{{now | date "2006-01-02T15.04"}}
+      BASEVARS: "{{.BASEVARS}}"
+      OCPVARS: "{{.OCPVARS}}"
+      RHNVARS: "{{.RHNVARS}}"
+      BECONF1: "{{.BECONF1}}"
+      BECONF2: "{{.BECONF2}}"
+
+  apply:
+    desc: apply terraform planfile for specific component tier
+    cmds:
+      - invoke tfapply "{{.TFWORKDIR}}"
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+
+  destroy:
+    desc: execute terraform destroy against specific tier
+    cmds:
+      - invoke tfdestroy {{.TFWORKDIR}} --varfile='"{{.BASEVARS}}","{{.OCPVARS}}","{{.RHNVARS}}","{{.BECONF1}}","{{.BECONF2}}"'
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+      BASEVARS: "{{.BASEVARS}}"
+      OCPVARS: "{{.OCPVARS}}"
+      RHNVARS: "{{.RHNVARS}}"
+      BECONF1: "{{.BECONF1}}"
+      BECONF2: "{{.BECONF2}}"
+
+  show:
+    desc: show current state of terraform deployment
+    cmds:
+      - invoke tfshow "{{.TFWORKDIR}}" | less
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+
+  output:
+    desc: show any outputs defined for terraform deployment
+    cmds:
+      - invoke tfoutput "{{.TFWORKDIR}}"
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+
+  refresh:
+    desc: refresh state for terraform deployment
+    cmds:
+      - invoke tfrefresh "{{.TFWORKDIR}}" --varfile='"{{.BASEVARS}}","{{.OCPVARS}}","{{.RHNVARS}}","{{.BECONF1}}","{{.BECONF2}}"'
+    vars:
+      TFWORKDIR: "{{.TFWORKDIR}}"
+      BASEVARS: "{{.BASEVARS}}"
+      OCPVARS: "{{.OCPVARS}}"
+      RHNVARS: "{{.RHNVARS}}"
+      BECONF1: "{{.BECONF1}}"
+      BECONF2: "{{.BECONF2}}"
+
+  print-date:
+    cmds:
+      - echo {{now | date "2006-01-02T15.04"}}
+
+  azsshgenkeypair:
+    desc: generate ssh key pair for administering OCP cluster
+    dir: ssh
+    cmds:
+      - invoke sshgenkeypair 
+    sources:
+      - README.md
+    generates:
+      - ./*ecdsa-sha2-nistp521
+      - ./*ecdsa-sha2-nistp521.pub
+      - ./*ecdsa-sha2-nistp521.forJSON
+    method: checksum
+
+  azlistresourcegroups:
+    desc: list existing resourcegroups
+    cmds:
+      - invoke listresourcegroups
+
+  azcreateresourcegroup:
+    desc: create azure resouce group
+    cmds:
+      - invoke createresourcegroup
+
+  azselectlocation:
+    desc: select azure location
+    cmds:
+      - invoke selectlocation
+
+  azcrsterraformupdate:
+    desc: update crsapp and crsregistry modules with bootstrap generated main.tf terraform scripts
+    cmds:
+      - invoke crsterraformupdate
