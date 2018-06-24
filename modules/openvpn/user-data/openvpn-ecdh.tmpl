@@ -1,0 +1,378 @@
+#!/bin/bash
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3 RETURN
+exec 1>/var/log/cloud-tools.out 2>&1
+IPTABLESSYSCONFIG=/etc/sysconfig/iptables-config
+SCRIPTFILE1=/var/lib/cloud-tools/netitup.py
+SCRIPTFILE2=/var/lib/cloud-tools/nmcli.py
+SCRIPTFILE3=/var/lib/cloud-tools/py_env.sh
+mkdir /var/lib/cloud-tools
+# -----------------------------------------------------------
+(
+cat <<'EOPS1'
+#!/usr/bin/python2
+import ipaddress, sys
+subnets = [unicode(item) for item in sys.argv[1].split(",")]
+for index in range(len(subnets)):
+    print("push \"route %s %s\"" % (ipaddress.ip_network(subnets[index]).network_address, ipaddress.ip_network(subnets[index]).netmask))
+EOPS1
+) > $SCRIPTFILE1
+if [ -f "$SCRIPTFILE1" ]; then
+  chmod 755 $SCRIPTFILE1
+fi
+# -----------------------------------------------------------
+(
+cat <<'EOPS2'
+#!/usr/bin/python2
+import os, sys, json
+from fabric.api import env, run, hide, settings, execute, local
+nmcli_cmd = 'nmcli -t dev show eth0 | jq \'. | split("\\n") | map( split(":") | {option: .[0], value: .[1]} ) | {nmcli: .} \' -R -s'
+def exec_cmd(cmd):
+    with hide('output','running','warnings', 'stdout', 'stderr'), settings(warn_only=True):
+        return local(cmd, capture=True)
+nmcli_out = exec_cmd(nmcli_cmd)
+jsonobj = json.loads(nmcli_out)
+for i in range(len(jsonobj["nmcli"])):
+    if "IP4.DNS[1]" == jsonobj["nmcli"][i]["option"]:
+        print "push \"route %s 255.255.255.255\"" % (jsonobj["nmcli"][i]["value"])
+        print "push \"dhcp-option DNS %s\"" % (jsonobj["nmcli"][i]["value"])
+    if "IP4.DOMAIN[1]" == jsonobj["nmcli"][i]["option"]:
+        print "push \"dhcp-option DOMAIN %s\"" % (jsonobj["nmcli"][i]["value"])
+EOPS2
+) > $SCRIPTFILE2
+if [ -f "$SCRIPTFILE2" ]; then
+  chmod 755 $SCRIPTFILE2
+fi
+# -----------------------------------------------------------
+(
+cat <<'EOPS3'
+#!/bin/bash
+cd /var/lib/cloud-tools
+wget -q https://pypi.python.org/packages/68/77/fef8a02cffb7d9387a0de4761b528a409cc9f6c6904c673331a0ce47638a/Fabric-1.14.0.tar.gz#md5=f97b63a478e8b4c46619dd9e574a8840
+wget -q https://pypi.python.org/packages/f9/e5/99ebb176e47f150ac115ffeda5fedb6a3dbb3c00c74a59fd84ddf12f5857/ecdsa-0.13.tar.gz#md5=1f60eda9cb5c46722856db41a3ae6670
+wget -q https://pypi.python.org/packages/be/9f/2b899b028aec1f3973253c0cf8dda6fbff65f4930f7ebedc43033e9f1b18/paramiko-2.4.0-py2.py3-none-any.whl#md5=53bf4a66ff143bda10b4b4868effac0d
+wget -q https://pypi.python.org/packages/bf/3e/31d502c25302814a7c2f1d3959d2a3b3f78e509002ba91aea64993936876/enum34-1.1.6.tar.gz#md5=5f13a0841a61f7fc295c514490d120d0
+wget -q https://pypi.python.org/packages/67/14/5d66588868c4304f804ebaff9397255f6ec5559e46724c2496e0f26e68d6/asn1crypto-0.22.0.tar.gz#md5=74a8b9402625b38ef19cf3fa69ef8470
+wget -q https://pypi.python.org/packages/7c/c8/7cf31d2fd64b5cfa3f4538ee47f6dac6cfcaf647956e10a0c1617e68248f/psycopg2-2.7.4-cp27-cp27mu-manylinux1_x86_64.whl#md5=db941253675d91c8cfc03d3e2e621668
+wget -q https://pypi.python.org/packages/e1/37/c0b6157ca6d409d58e27db95a79df0cb0df2064de9de7db30dfbe02d4b13/cffi-1.11.4-cp27-cp27mu-manylinux1_x86_64.whl#md5=5d83120a50f4f699f111056b7dc4d4e0
+wget -q https://pypi.python.org/packages/69/7b/05067e7c4d1a287c0be040e46ef70b8dfd7a809af8afcfbcc1b60e801ebc/cryptography-2.1.4-cp27-cp27mu-manylinux1_x86_64.whl#md5=a552067be0b7abe869f5c421f6f0e934
+wget -q https://pypi.python.org/packages/27/cc/6dd9a3869f15c2edfab863b992838277279ce92663d334df9ecf5106f5c6/idna-2.6-py2.py3-none-any.whl#md5=875c4a7b32b4897537d5ea9247b5c79e
+wget -q https://pypi.python.org/packages/2e/5a/2abeae20ce294fe6bf63da0e0b5a885c788e1360bbd124edcc0429678a59/bcrypt-3.1.4-cp27-cp27mu-manylinux1_x86_64.whl#md5=beb04dce4be521f8fd23b6318b440b07
+wget -q https://pypi.python.org/packages/80/3d/d709b9fbd69e21dd3a4d34eb690c5484094699e03b7447bc7eb173cfd7b6/PyNaCl-1.2.1-cp27-cp27mu-manylinux1_x86_64.whl#md5=b153071652603f7fcd173c81716ad583
+for i in *.tar.gz; do
+	tar -xzf $i
+	rm $i
+	pathstring=$(echo $$PWD/$${i%.*.*}:$pathstring)
+done
+for i in *.whl; do
+	dir=$(echo $i | awk -F- '{print $1 FS $2}')
+	mkdir $dir
+	unzip -q $i -d $dir
+	rm $i
+	pathstring=$(echo $PWD/$dir:$pathstring)
+done
+echo "$pathstring" > /tmp/pythonpath
+EOPS3
+) > $SCRIPTFILE3
+if [ -f "$SCRIPTFILE3" ]; then
+  chmod 755 $SCRIPTFILE3
+fi
+# -----------------------------------------------------------
+(
+cat <<IPTSCEOF
+IPTABLES_MODULES=""
+IPTABLES_MODULES_UNLOAD="yes"
+IPTABLES_SAVE_ON_STOP="yes"
+IPTABLES_SAVE_ON_RESTART="yes"
+IPTABLES_SAVE_COUNTER="no"
+IPTABLES_STATUS_NUMERIC="yes"
+IPTABLES_STATUS_VERBOSE="no"
+IPTABLES_STATUS_LINENUMBERS="yes"
+IPTSCEOF
+) >$IPTABLESSYSCONFIG
+# -----------------------------------------------------------
+# Register Host with Cloud Access Subscription
+echo $(date) " - Register host with Cloud Access Subscription"
+
+subscription-manager register --username="${USERNAME_ORG}" --password="${PASSWORD_ACT_KEY}" || subscription-manager register --activationkey="${PASSWORD_ACT_KEY}" --org="${USERNAME_ORG}"
+
+if [ $? -eq 0 ]
+then
+   echo "Subscribed successfully"
+elif [ $? -eq 64 ]
+then
+   echo "This system is already registered."
+else
+   echo "Incorrect Username / Password or Organization ID / Activation Key specified"
+   exit 3
+fi
+
+RHN_POOL_ID="${RHN_POOL_ID}"
+
+if [ "$${RHN_POOL_ID}" == "null" ]
+then
+   echo "Subscribed successfully via Organization ID / Activation Key, no pool attachment necessary."
+else
+subscription-manager attach --pool=$${RHN_POOL_ID} > attach.log
+   if [ $? -eq 0 ]
+   then
+      echo "Pool attached successfully"
+   else
+      evaluate=$( cut -f 2-5 -d ' ' attach.log )
+      if [[ $evaluate == "unit has already had" ]]
+         then
+            echo "Pool $${RHN_POOL_ID} was already attached and was not attached again."
+	       else
+            echo "Incorrect Pool ID or no entitlements available"
+            exit 4
+      fi
+   fi
+fi
+
+# Disable all repositories and enable only the required ones
+echo $(date) " - Disabling all repositories and enabling only the required repos"
+
+subscription-manager repos --disable="*"
+
+subscription-manager repos \
+    --enable="rhel-7-server-rpms" \
+    --enable="rhel-7-server-extras-rpms" \
+    --enable="rhel-7-server-rh-common-rpms"
+
+# Install EPEL repository
+echo $(date) " - Installing EPEL"
+
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+sed -i -e "s/^enabled=0/enabled=1/" /etc/yum.repos.d/epel.repo
+
+yum -y install openvpn telnet unzip python-ipaddress jq
+yum -y install iptables iptables-services
+
+systemctl mask firewalld
+systemctl enable iptables
+systemctl stop firewalld
+systemctl start iptables
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sed -i -e 's/net\.ipv4\.ip_forward = 0/net\.ipv4\.ip_forward = 1/' /etc/sysctl.conf
+sysctl -p
+# -----------------------------------------------------------
+# Flushing all rules
+iptables -F FORWARD
+iptables -F INPUT
+iptables -F OUTPUT
+iptables -X
+# Setting default filter policy
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+# Allow unlimited traffic on loopback
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+# Accept pings
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type echo-reply -j ACCEPT
+# Accept inbound TCP packets
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# Allow incoming SSH
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -s 0.0.0.0/0 -j ACCEPT
+# Allow incoming OpenVPN
+iptables -A INPUT -p udp --dport 1194 -m state --state NEW -s 0.0.0.0/0 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -m state --state NEW -s 0.0.0.0/0 -j ACCEPT
+# Accept outbound packets
+iptables -I OUTPUT 1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+# Allow DNS outbound
+iptables -A OUTPUT -p udp --dport 53 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 53 -m state --state NEW -j ACCEPT
+# Allow HTTP outbound
+iptables -A OUTPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
+# Allow HTTPS outbound
+iptables -A OUTPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
+# Allow TUN interface connections to OpenVPN server
+iptables -A INPUT -i tun+ -j ACCEPT
+# Allow TUN interface connections to be forwarded through other interfaces
+iptables -A FORWARD -i tun+ -j ACCEPT
+iptables -A OUTPUT -o tun+ -j ACCEPT
+iptables -A FORWARD -i tun+ -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i eth0 -o tun+ -m state --state RELATED,ESTABLISHED -j ACCEPT
+# Allow outbound access to all networks on the Internet from the VPN
+iptables -A FORWARD -i tun+ -s 10.254.253.0/24 -d 0.0.0.0/0 -j ACCEPT
+# Block client-to-client routing on the VPN
+iptables -A FORWARD -i tun+ -s 10.254.253.0/24 -d 10.254.253.0/24 -j DROP
+# Masquerade forward
+iptables -t nat -A POSTROUTING -o tun+ -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+# -----------------------------------------------------------
+semanage port -a -t openvpn_port_t -p tcp 1195
+
+$SCRIPTFILE3
+cd /etc/openvpn
+basedir=$PWD
+eazyrsaver=3.0.4
+servername="${OPENVPN_PUB_DNS_NAME}"
+serverlistip=$(hostname --ip-address)
+serverip="${OPENVPN_PUB_IP}"
+serverport="1194"
+biits="4096"
+clientsnamenonsec="${OPENVPN_CLIENT_CERT_NAME}"
+
+export RANDFILE=/tmp/.rnd
+red=$(tput bold;tput setaf 1)
+reset=$(tput sgr0)
+wget -q https://github.com/OpenVPN/easy-rsa/archive/v$${eazyrsaver}.zip
+unzip -q v$${eazyrsaver}.zip
+sed -i \
+ -e "s/\#set_var EASYRSA_KEY_SIZE\t2048/set_var EASYRSA_KEY_SIZE\t$biits/" \
+ -e 's/#set_var EASYRSA_REQ_COUNTRY/set_var EASYRSA_REQ_COUNTRY/' \
+ -e 's/#set_var EASYRSA_REQ_PROVINCE/set_var EASYRSA_REQ_PROVINCE/' \
+ -e 's/#set_var EASYRSA_REQ_CITY/set_var EASYRSA_REQ_CITY/' \
+ -e 's/#set_var EASYRSA_REQ_ORG/set_var EASYRSA_REQ_ORG/' \
+ -e 's/#set_var EASYRSA_REQ_EMAIL/set_var EASYRSA_REQ_EMAIL/' \
+ -e 's/#set_var EASYRSA_REQ_OU/set_var EASYRSA_REQ_OU/' \
+ -e 's/California/${OPENVPN_CLIENT_CERT_STATE}/' \
+ -e 's/San Francisco/${OPENVPN_CLIENT_CERT_CITY}/' \
+ -e 's/Copyleft Certificate Co/${OPENVPN_CLIENT_CERT_ORG}/' \
+ -e 's/me\@example\.net/${OPENVPN_CLIENT_CERT_EMAIL}/' \
+ -e 's/My Organizational Unit/${OPENVPN_CLIENT_CERT_OU}/' \
+ -e 's/\#set_var EASYRSA_ALGO\t\trsa/set_var EASYRSA_ALGO\t\tec/' \
+ -e 's/\#set_var EASYRSA_CURVE\t\tsecp384r1/set_var EASYRSA_CURVE\t\tsecp521r1/' \
+ easy-rsa-$${eazyrsaver}/easyrsa3/vars.example
+mv easy-rsa-$${eazyrsaver}/easyrsa3/vars.example easy-rsa-$${eazyrsaver}/easyrsa3/vars
+mkdir server clients
+cp -R easy-rsa-$${eazyrsaver}/easyrsa3/* clients/
+cp -R easy-rsa-$${eazyrsaver}/easyrsa3/* server/
+
+cd clients
+./easyrsa init-pki
+echo "$${red}- $(date) generate client PKI and CSRs$${reset}"
+for i in $clientsnamenonsec
+do
+	./easyrsa --batch --req-cn=$i gen-req $i nopass
+done
+
+cd ../server
+./easyrsa init-pki
+echo "$${red}- $(date) generate CA, server PKI and CSR$${reset}"
+./easyrsa --batch build-ca nopass
+./easyrsa --batch --req-cn=$servername gen-req $servername nopass
+echo "$${red} - $(date) sign server CSR$${reset}"
+./easyrsa --batch sign-req server $servername nopass
+/sbin/openvpn --genkey --secret ta.key
+echo "$${red}- $(date) sign client CSRs$${reset}"
+for cliient in $(ls ../clients/pki/reqs/|sed -e 's/.req//g'); do
+	./easyrsa --batch import-req ../clients/pki/reqs/$cliient.req $cliient
+	./easyrsa --batch sign-req client $cliient nopass
+done
+
+cd ../
+for cliient in $(ls clients/pki/reqs/|sed -e 's/.req//g');
+do
+        if [[ ! -d keys/$cliient ]]; then
+                mkdir -p keys/$cliient/keys
+        fi
+        cp server/ta.key keys/$cliient/keys/
+        cp server/pki/ca.crt keys/$cliient/keys/
+        cp server/pki/issued/$cliient.crt keys/$cliient/keys/client.crt
+        openssl ec -in clients/pki/private/$cliient.key -des3 -out clients/pki/private/$cliient_ECclient.3des.key -passout pass:$cliient
+        cp clients/pki/private/$cliient_ECclient.3des.key keys/$cliient/keys/ECclient.3des.key
+chmod 0400 -R keys
+restorecon -R -v /etc/openvpn
+export PYTHONPATH=$(cat /tmp/pythonpath)
+
+(
+cat <<UDPOVPNCEOF
+client
+remote ${OPENVPN_PUB_DNS_NAME} $serverport
+proto udp
+setenv FORWARD_COMPATIBLE 1
+fragment 1400
+mssfix
+server-poll-timeout 4
+nobind
+dev tun0
+dev-type tun
+remote-cert-tls server
+reneg-sec 604800
+sndbuf 100000
+rcvbuf 100000
+script-security 2
+up /etc/openvpn/client.up
+down /etc/openvpn/client.down
+down-pre
+#auth-user-pass
+auth SHA512
+tls-cipher TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384
+ncp-ciphers AES-256-GCM:AES-256-CBC
+comp-lzo
+verb 3
+pull
+UDPOVPNCEOF
+) >keys/$cliient/$servername.ovpn
+        echo -e "<ca>">> keys/$cliient/$servername.ovpn
+        cat keys/$cliient/keys/ca.crt >> keys/$cliient/$servername.ovpn
+        echo -e "</ca>\n<cert>">> keys/$cliient/$servername.ovpn
+        sed -n '/-----BEGIN CERTIFICATE-----/,$p' keys/$cliient/keys/client.crt >> keys/$cliient/$servername.ovpn
+        echo -e "</cert>\n<key>">> keys/$cliient/$servername.ovpn
+        cat keys/$cliient/keys/ECclient.3des.key >> keys/$cliient/$servername.ovpn
+        echo -e "</key>\n">> keys/$cliient/$servername.ovpn
+        echo -e "key-direction 1\n<tls-crypt>">> keys/$cliient/$servername.ovpn
+        cat keys/$cliient/keys/ta.key >> keys/$cliient/$servername.ovpn
+        echo "</tls-crypt>">> keys/$cliient/$servername.ovpn
+done
+
+for serveer in $(ls server/pki/private/|grep -v ca.key|sed -e 's/.key//g');
+do
+        if [[ ! -d keys/$serveer ]]; then
+                mkdir -p keys/$serveer/keys
+        fi
+        cp server/ta.key keys/$serveer/keys/
+        cp server/pki/ca.crt keys/$serveer/keys/
+        cp server/pki/issued/$serveer.crt keys/$serveer/keys/
+        cp server/pki/private/$serveer.key keys/$serveer/keys/
+(
+cat <<UDPOVPNCEOF
+port $serverport
+proto udp
+dev tun1
+ca $basedir/keys/$serveer/keys/ca.crt
+cert $basedir/keys/$serveer/keys/$serveer.crt
+key $basedir/keys/$serveer/keys/$serveer.key
+dh none
+tls-crypt $basedir/keys/$serveer/keys/ta.key 0
+auth SHA512
+tls-version-min 1.2
+tls-cipher TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384
+ncp-ciphers AES-256-GCM:AES-256-CBC
+server 10.254.253.0 255.255.255.0
+ifconfig-pool-persist ipp.txt
+UDPOVPNCEOF
+) >keys/$serveer/$${serveer}_udp.conf
+$SCRIPTFILE1 "${OPENVPN_LAN_RANGE}" >> keys/$serveer/$${serveer}_udp.conf
+$SCRIPTFILE2 >> keys/$serveer/$${serveer}_udp.conf
+(
+cat <<UDPOVPNCEOF
+fragment 1400
+keepalive 10 120
+comp-lzo
+max-clients 10
+user nobody
+group openvpn
+persist-key
+persist-tun
+management 127.0.0.1 1195
+duplicate-cn #several users can use same key
+status /var/log/openvpn-status.log
+log /var/log/openvpn.log
+verb 2
+UDPOVPNCEOF
+) >>keys/$serveer/$${serveer}_udp.conf
+ln -s $${basedir}/keys/$serveer/$${serveer}_udp.conf .
+systemctl -f enable openvpn@$${serveer}_udp.service
+systemctl start openvpn@$${serveer}_udp.service
+done
+# -----------------------------------------------------------
+echo "OPENVPN_LAN_RANGE set to: ${OPENVPN_LAN_RANGE}"
+echo "$(date -R) - cloud-init automate completion tag for trapit: ${RANDOM_STRING}"
+exit 0
