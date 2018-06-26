@@ -67,16 +67,16 @@ def envinit(ctx):
     baseprojectdir, envdir = os.path.split(os.getcwd())
     sampletfvar = glob.glob('*.sample')
     for i in reversed(range(len(sampletfvar))):
-        print('Copying %s to %s' % (sampletfvar[i],sampletfvar[i].strip('.sample')))
-        shutil.copy(sampletfvar[i],sampletfvar[i].strip('.sample'))
-    realtfvar = glob.glob('*.tfvar')
+        print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
+        shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
+    realtfvars = glob.glob('*.tfvars')
     tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
-    print('Setting tfvar file symlinks to appropriate %s tier component locations...' % envdir)
+    print('Setting tfvars file symlinks to appropriate %s tier component locations...' % envdir)
     for tier in range(len(tierlist)):
         print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
         os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
-        for i in reversed(range(len(realtfvar))):
-            os.symlink('../'+realtfvar[i], realtfvar[i])
+        for i in reversed(range(len(realtfvars))):
+            os.symlink('../'+realtfvars[i], realtfvars[i])
         if str(tierlist[tier]) != 'bootstrap':
             print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
             #os.symlink('../../variables.tf', 'variables.tf')
