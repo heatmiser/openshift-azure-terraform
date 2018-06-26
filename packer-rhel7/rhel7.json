@@ -162,8 +162,10 @@
         "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-ci-kvm-ks.cfg<enter><wait>"
       ]
     }],
+  "post-processors": [{
     "type": "manifest",
     "output": "manifest.json",
     "strip_path": true,
     "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure", "rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
+      }]
       }
