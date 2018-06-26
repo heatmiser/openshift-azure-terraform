@@ -110,6 +110,11 @@ tasks:
       - ./*ecdsa-sha2-nistp521.forJSON
     method: checksum
 
+  azenvinit:
+    desc: initialize terraform environment
+    cmds:
+      - invoke envinit
+
   azlistresourcegroups:
     desc: list existing resourcegroups
     cmds:

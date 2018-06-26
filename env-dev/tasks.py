@@ -59,6 +59,50 @@ def clear():
     _ = os.system('clear')
 
 @task
+def envinit(ctx):
+    """intial environment preparation"""
+    print('Performing initial environment preparation steps...')
+    print('Copying sample tfvars into place...')
+    rootDir=os.getcwd()
+    baseprojectdir, envdir = os.path.split(os.getcwd())
+    sampletfvar = glob.glob('*.sample')
+    for i in reversed(range(len(sampletfvar))):
+        print('Copying %s to %s' % (sampletfvar[i],sampletfvar[i].strip('.sample')))
+        shutil.copy(sampletfvar[i],sampletfvar[i].strip('.sample'))
+    realtfvar = glob.glob('*.tfvar')
+    tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
+    print('Setting tfvar file symlinks to appropriate %s tier component locations...' % envdir)
+    for tier in range(len(tierlist)):
+        print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
+        os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+        for i in reversed(range(len(realtfvar))):
+            os.symlink('../'+realtfvar[i], realtfvar[i])
+        if str(tierlist[tier]) != 'bootstrap':
+            print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
+            #os.symlink('../../variables.tf', 'variables.tf')
+            symlinkcmd = ('ln -s ../../variables.tf .')
+            symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+    print('Setting variables.tf symlink in appropriate component modules locations...')
+    for tier in range(len(tierlist)):
+        if str(tierlist[tier]) != 'bootstrap':
+            print('Creating symlink in module %s to root variables.tf...' % (tierlist[tier]))
+            os.chdir(baseprojectdir+'/modules/'+tierlist[tier])
+            #os.symlink('../../variables.tf', 'variables.tf')
+            symlinkcmd = ('ln -s ../../variables.tf .')
+            symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+            extravars = glob.glob('variables-*.tf')
+            if len(extravars) != 0:
+                print('%s module specific variables-*.tf found, creating symlink in related %s location...' % (tierlist[tier],envdir))
+                for varfile in range(len(extravars)):
+                    os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+                    symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
+                    symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+
+
+
+    
+
+@task
 def sshgenkeypair(ctx):
     """create ECDSA public/private key pair"""
     basekeyname = input("Please enter a base filename to use for a newly generated SSH key pair > ")
