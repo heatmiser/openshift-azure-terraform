@@ -1,6 +1,4 @@
-subscription_id = "azuresubscriptionid"
-
-tenant_id = "azuretenantid"
+# OpenShift variables
 
 openshift_script_path = "./scripts"
 
@@ -65,10 +63,6 @@ ssh_public_key_path = "./../ssh/openshift_id.pub"
 
 # JSON-ready version of the private key
 connection_private_ssh_key_path = "./../ssh/openshift_id.forJSON"
-
-aad_client_id = "azureserviceprincipalid"
-
-aad_client_secret = "azureserviceprincipalsecret"
 
 // use "nipio" for no external DNS setups, set to "custom" when the next variable is used for external DNS integration
 default_sub_domain_type = "nipio"
