@@ -18,6 +18,27 @@
 !ssh/README.md
 ssh/
 
+#symlinked tf files
+env-*/bastion/variables.tf
+env-*/crsapp/variables.tf
+env-*/crsreg/variables.tf
+env-*/infra/variables.tf
+env-*/master/variables.tf
+env-*/network-crs/variables.tf
+env-*/network/variables.tf
+env-*/node/variables.tf
+env-*/openvpn/variables-openvpn.tf
+env-*/openvpn/variables.tf
+modules/bastion/variables.tf
+modules/crsapp/variables.tf
+modules/crsreg/variables.tf
+modules/infra/variables.tf
+modules/master/variables.tf
+modules/network-crs/variables.tf
+modules/network/variables.tf
+modules/node/variables.tf
+modules/openvpn/variables.tf
+
 # misc
 **/.task/*
 **/*.log
