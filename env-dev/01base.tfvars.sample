@@ -1,3 +1,11 @@
+aad_client_id = "azureserviceprincipalid"
+
+aad_client_secret = "azureserviceprincipalsecret"
+
+subscription_id = "azuresubscriptionid"
+
+tenant_id = "azuretenantid"
+
 # these first three are primarily used for tagging, recommended to be unique across each OCP cluster deployment
 project = "projectname"
 
