@@ -24,3 +24,4 @@ ssh/
 **/*.out
 **/manifest.json
 .vscode/
+**/azcreds.json
