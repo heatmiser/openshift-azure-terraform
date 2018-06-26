@@ -55,6 +55,29 @@ def confirm(prompt=None, resp=False):
         if ans == 'n' or ans == 'N' or ans == 'no' or ans == 'No':
             return False
 
+def replace_all(text, dic):
+    for y, z in dic.iteritems():
+        text = text.replace(y, z)
+    return text
+
+def findnreplace(orig, new, subdict):
+    infile = open(orig, "r")
+    outfile = open(new, "w")
+    while infile:
+        line = infile.readline()
+        n = len(line)
+        if n == 0:
+            break
+        newline = replace_all(line, subdict)
+        outfile.write(newline)
+    outfile.close()
+    infile.close()
+
+def azurelogin():
+    credsjson = 'azcreds.json'
+    with open(credsjson, 'r') as handle:
+            config = json.load(handle)
+
 def clear():
     _ = os.system('clear')
 
@@ -97,10 +120,13 @@ def envinit(ctx):
                     os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
                     symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                     symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-
-
-
-    
+    rg2use, loc2use = createresourcegroup(ctx)
+    sublocs = ['resourcegroupname',
+           'tfstatestorageaccountname']
+    provided = [rg2use,
+            loc2use]
+    subdict = dict(zip(sublocs, provided))
+    findnreplace('file1', 'file2', subdict)
 
 @task
 def sshgenkeypair(ctx):
@@ -128,8 +154,9 @@ def createresourcegroup(ctx):
             if str(azrgstate.stdout).strip() == 'Succeeded':
                 ansrStr = str(confirm(prompt='Resource group "'+azrgname+'" already exists, are you sure you want to use this resource group?'))
                 if ansrStr == 'True':
-                    print('Use existing group')
-                    return azrgname
+                    print('Use existing resouce group')
+                    rglocation = run(('az group show -n %s | jq \'.location\' | tr -d \'"\'') % (azrgname), hide=True, warn=True)
+                    return (azrgname, rglocation)
                 else:
                     continue
             else:
@@ -142,7 +169,7 @@ def createresourcegroup(ctx):
                     azrgcreatejson = json.load(azrgcreateio)
                     if azrgcreatejson['properties']['provisioningState'] == 'Succeeded':
                         print('Creation of resource group "%s" in "%s" succeeded.' % (azrgname, rglocation))
-                        return True
+                        return (azrgname, rglocation)
                     else:
                         print('An error occured')
                         print(azrgcreate.stderr.strip())
