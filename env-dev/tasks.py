@@ -84,10 +84,21 @@ def azurelogin():
     azloginjson = json.load(azloginio)[0]
     if azloginjson['state'] == 'Enabled':
         print('Azure login via service principal "%s" succeeded.' % (config["aad_client_id"]))
-        return (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"])
+        return (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"]), azloginjson['id']
     else:
         print('Service principal login unsuccessful, please ensure credentials in azcreds.json are correct.')
         print(azlogin.stderr.strip())
+        return False
+
+def azureloggedin():
+    azstatus = run('az account show', hide=True, warn=True)
+    azstatusio = StringIO(azstatus.stdout.strip())
+    azstatusjson = json.load(azstatusio)
+    if azstatusjson['state'] == 'Enabled':
+        return True
+    else:
+        print('Not currently logged in to Azure. Please log in and retry.')
+        print(azstatus.stderr.strip())
         return False
 
 def clear():
@@ -97,7 +108,7 @@ def clear():
 def envinit(ctx):
     """intial environment preparation"""
     print('Logging into Azure using credentials provided via azcreds.json...')
-    aad_client_id, aad_client_secret, tenant_id = azurelogin()
+    aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
     if aad_client_id != "False":
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
@@ -139,11 +150,13 @@ def envinit(ctx):
         sublocs = ['azureserviceprincipalid',
                 'azureserviceprincipalsecret',
                 'azuretenantid',
+                'azuresubscriptionid',
                 'ocpresourcegroupname',
                 'southcentralus']
         provided = [aad_client_id,
                     aad_client_secret,
                     tenant_id,
+                    subscription_id,
                     rg2use,
                     loc2use]
         subdict = dict(zip(sublocs, provided))
@@ -241,12 +254,29 @@ def selectlocation(ctx):
     return azlocationlistjson[locationint]['name']
 
 @task
-def createstorageaccount(ctx, resourcegroup, location, saname):
-    """create Azure storage account for tfstate"""
-    azsacreatecmd = ('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (location, resourcegroup, saname)
-    azsacreateraw = run(azsacreatecmd, hide=True, warn=True)
-    azsacreateio = StringIO(azsacreateraw.stdout)
-    azsacreatejson = json.load(azsacreateio)
+def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
+    """create Azure storage account"""
+    while azureloggedin():
+        if resourcegroup == '':
+            rg2use, loc2use = createresourcegroup(ctx)
+        else:
+            rg2use = resourcegroup
+            loc2use = location
+        if stacname == '':
+            while True:
+                azstacname = input("Please enter desired storage account name > ")
+                ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the desired storage account name. Is this correct?'))
+                if ansrStr == 'True':
+                    print('Creating storage account "'+stacname+'"...')                        
+                else:
+                    print('Try again')
+                    continue
+        print('enter storage create code')
+        #azstacstate = run(('az storage account create --location %s --name %s --resource-group %s --sku Standard_LRS') % (loc2use, stacname, rg2use), hide=True, warn=True)
+        #azsacreatecmd = ('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (location, resourcegroup, saname)
+        #azsacreateraw = run(azsacreatecmd, hide=True, warn=True)
+        #azsacreateio = StringIO(azsacreateraw.stdout)
+        #azsacreatejson = json.load(azsacreateio)
 
 @task
 def crsterraformupdate(ctx):
