@@ -130,6 +130,11 @@ tasks:
     cmds:
       - invoke selectlocation
 
+  azcreatestorageaccount:
+    desc: create azure storage account
+    cmds:
+      - invoke createstorageaccount
+
   azcrsterraformupdate:
     desc: update crsapp and crsregistry modules with bootstrap generated main.tf terraform scripts
     cmds:
