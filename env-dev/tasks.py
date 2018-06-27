@@ -273,9 +273,9 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
                 continue
         print('enter storage create code')
         azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (loc2use, stacname, rg2use), hide=True, warn=True)
-        azsaaccreateio = StringIO(azstaccreate.stdout)
-        azsaaccreatejson = json.load(azsaaccreateio)
-        if azsaaccreatejson['provisioningState'] == 'Succeeded':
+        azstaccreateio = StringIO(azstaccreate.stdout)
+        azstaccreatejson = json.load(azstaccreateio)
+        if azstaccreatejson['provisioningState'] == 'Succeeded':
             print('Creation of storage account "%s" in resource group "%s" succeeded.' % (stacname, rg2use))
             return (stacname)
         else:
