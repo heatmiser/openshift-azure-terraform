@@ -46,3 +46,4 @@ modules/openvpn/variables.tf
 **/manifest.json
 .vscode/
 **/azcreds.json
+packer-rhel7/rhel-7-*
