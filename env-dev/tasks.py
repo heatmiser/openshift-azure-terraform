@@ -3,6 +3,7 @@ import sys
 import json
 import glob
 import logging
+import tempfile
 import re, shutil, tempfile
 from invoke import run
 from invoke import task
@@ -56,27 +57,38 @@ def confirm(prompt=None, resp=False):
             return False
 
 def replace_all(text, dic):
-    for y, z in dic.iteritems():
+    for y, z in dic.items():
         text = text.replace(y, z)
     return text
 
-def findnreplace(orig, new, subdict):
-    infile = open(orig, "r")
-    outfile = open(new, "w")
-    while infile:
-        line = infile.readline()
-        n = len(line)
-        if n == 0:
-            break
-        newline = replace_all(line, subdict)
-        outfile.write(newline)
-    outfile.close()
-    infile.close()
+def findnreplace(file, subdict):
+    with tempfile.NamedTemporaryFile(mode='w', dir='.', delete=False) as tmp, \
+          open(file, 'r') as f:
+        while f:
+            line = f.readline()
+            n = len(line)
+            if n == 0:
+                break
+            newline = replace_all(line, subdict)
+            tmp.write(newline)
+        f.close()
+        tmp.close()
+    os.replace(tmp.name, file)
 
 def azurelogin():
     credsjson = 'azcreds.json'
     with open(credsjson, 'r') as handle:
-            config = json.load(handle)
+        config = json.load(handle)
+    azlogin = run(('az login --service-principal --username %s --password %s --tenant %s') % (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"]), hide=True, warn=True)
+    azloginio = StringIO(azlogin.stdout.strip())
+    azloginjson = json.load(azloginio)[0]
+    if azloginjson['state'] == 'Enabled':
+        print('Azure login via service principal "%s" succeeded.' % (config["aad_client_id"]))
+        return (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"])
+    else:
+        print('Service principal login unsuccessful, please ensure credentials in azcreds.json are correct.')
+        print(azlogin.stderr.strip())
+        return False
 
 def clear():
     _ = os.system('clear')
@@ -84,49 +96,61 @@ def clear():
 @task
 def envinit(ctx):
     """intial environment preparation"""
-    print('Performing initial environment preparation steps...')
-    print('Copying sample tfvars into place...')
-    rootDir=os.getcwd()
-    baseprojectdir, envdir = os.path.split(os.getcwd())
-    sampletfvar = glob.glob('*.sample')
-    for i in reversed(range(len(sampletfvar))):
-        print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
-        shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
-    realtfvars = glob.glob('*.tfvars')
-    tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
-    print('Setting tfvars file symlinks to appropriate %s tier component locations...' % envdir)
-    for tier in range(len(tierlist)):
-        print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
-        os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
-        for i in reversed(range(len(realtfvars))):
-            os.symlink('../'+realtfvars[i], realtfvars[i])
-        if str(tierlist[tier]) != 'bootstrap':
-            print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
-            #os.symlink('../../variables.tf', 'variables.tf')
-            symlinkcmd = ('ln -s ../../variables.tf .')
-            symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-    print('Setting variables.tf symlink in appropriate component modules locations...')
-    for tier in range(len(tierlist)):
-        if str(tierlist[tier]) != 'bootstrap':
-            print('Creating symlink in module %s to root variables.tf...' % (tierlist[tier]))
-            os.chdir(baseprojectdir+'/modules/'+tierlist[tier])
-            #os.symlink('../../variables.tf', 'variables.tf')
-            symlinkcmd = ('ln -s ../../variables.tf .')
-            symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-            extravars = glob.glob('variables-*.tf')
-            if len(extravars) != 0:
-                print('%s module specific variables-*.tf found, creating symlink in related %s location...' % (tierlist[tier],envdir))
-                for varfile in range(len(extravars)):
-                    os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
-                    symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
-                    symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-    rg2use, loc2use = createresourcegroup(ctx)
-    sublocs = ['resourcegroupname',
-           'tfstatestorageaccountname']
-    provided = [rg2use,
-            loc2use]
-    subdict = dict(zip(sublocs, provided))
-    findnreplace('file1', 'file2', subdict)
+    print('Logging into Azure using credentials provided via azcreds.json...')
+    aad_client_id, aad_client_secret, tenant_id = azurelogin()
+    if aad_client_id != "False":
+        print('Performing initial environment preparation steps...')
+        print('Copying sample tfvars into place...')
+        rootDir=os.getcwd()
+        baseprojectdir, envdir = os.path.split(os.getcwd())
+        sampletfvar = glob.glob('0*.sample')
+        for i in reversed(range(len(sampletfvar))):
+            print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
+            shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
+        realtfvars = glob.glob('*.tfvars')
+        tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
+        print('Setting tfvars file symlinks to appropriate %s tier component locations...' % envdir)
+        for tier in range(len(tierlist)):
+            print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
+            os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+            for i in reversed(range(len(realtfvars))):
+                os.symlink('../'+realtfvars[i], realtfvars[i])
+            if str(tierlist[tier]) != 'bootstrap':
+                print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
+                #os.symlink('../../variables.tf', 'variables.tf')
+                symlinkcmd = ('ln -s ../../variables.tf .')
+                symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+        print('Setting variables.tf symlink in appropriate component modules locations...')
+        for tier in range(len(tierlist)):
+            if str(tierlist[tier]) != 'bootstrap':
+                print('Creating symlink in module %s to root variables.tf...' % (tierlist[tier]))
+                os.chdir(baseprojectdir+'/modules/'+tierlist[tier])
+                #os.symlink('../../variables.tf', 'variables.tf')
+                symlinkcmd = ('ln -s ../../variables.tf .')
+                symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+                extravars = glob.glob('variables-*.tf')
+                if len(extravars) != 0:
+                    print('%s module specific variables-*.tf found, creating symlink in related %s location...' % (tierlist[tier],envdir))
+                    for varfile in range(len(extravars)):
+                        os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+                        symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
+                        symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+        rg2use, loc2use = createresourcegroup(ctx)
+        sublocs = ['azureserviceprincipalid',
+                'azureserviceprincipalsecret',
+                'azuretenantid',
+                'ocpresourcegroupname',
+                'southcentralus']
+        provided = [aad_client_id,
+                    aad_client_secret,
+                    tenant_id,
+                    rg2use,
+                    loc2use]
+        subdict = dict(zip(sublocs, provided))
+        findnreplace('01base.tfvars', subdict)
+    else:
+        print('An error occured logging into Azure, correct the issue and try again.')
+        exit
 
 @task
 def sshgenkeypair(ctx):
