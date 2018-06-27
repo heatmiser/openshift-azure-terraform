@@ -262,21 +262,22 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
         else:
             rg2use = resourcegroup
             loc2use = location
-        if stacname == '':
-            while True:
-                stacname = input("Please enter desired storage account name > ")
-                ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the desired storage account name. Is this correct?'))
-                if ansrStr == 'True':
-                    print('Creating storage account "'+stacname+'"...')                        
-                else:
-                    print('Try again')
-                    continue
+        while stacname == '':
+            stacname = input("Please enter desired storage account name > ")
+            ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the desired storage account name. Is this correct?'))
+            if ansrStr == 'True':
+                print('Creating storage account "'+stacname+'"...')                        
+            else:
+                print('Try again')
+                stacname = ''
+                continue
         print('enter storage create code')
         #azstacstate = run(('az storage account create --location %s --name %s --resource-group %s --sku Standard_LRS') % (loc2use, stacname, rg2use), hide=True, warn=True)
         #azsacreatecmd = ('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (location, resourcegroup, saname)
         #azsacreateraw = run(azsacreatecmd, hide=True, warn=True)
         #azsacreateio = StringIO(azsacreateraw.stdout)
         #azsacreatejson = json.load(azsacreateio)
+        return (stacname)
 
 @task
 def crsterraformupdate(ctx):
