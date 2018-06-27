@@ -264,7 +264,7 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
             loc2use = location
         if stacname == '':
             while True:
-                azstacname = input("Please enter desired storage account name > ")
+                stacname = input("Please enter desired storage account name > ")
                 ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the desired storage account name. Is this correct?'))
                 if ansrStr == 'True':
                     print('Creating storage account "'+stacname+'"...')                        
