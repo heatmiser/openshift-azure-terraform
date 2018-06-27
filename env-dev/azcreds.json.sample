@@ -1,4 +1,5 @@
 {
-    "aad_client_id": "id", 
-    "aad_client_secret": "secret"
+    "aad_client_id": "aad_id", 
+    "aad_client_secret": "aad_secret",
+    "tenant_id": az_tenant_id
 }
