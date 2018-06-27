@@ -167,5 +167,9 @@
     "output": "manifest.json",
     "strip_path": true,
     "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure", "rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
-      }]
-      }
+      },{
+        "type": "shell-local",
+        "script": "./az-prep-disk.sh",
+        "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
+        }]
+}
