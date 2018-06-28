@@ -280,7 +280,7 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
                 print('Try again')
                 stacname = ''
                 continue
-        azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (loc2use, stacname, rg2use), hide=True, warn=True)
+        azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS --kind StorageV2') % (loc2use, stacname, rg2use), hide=True, warn=True)
         azstaccreateio = StringIO(azstaccreate.stdout)
         azstaccreatejson = json.load(azstaccreateio)
         # alternate method if needed...doesn't handle stdout/stderr as easily
@@ -293,6 +293,49 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
             print('An error occured')
             print(azstaccreate.stderr.strip())
             return False
+
+@task
+def createstoragecontainer(ctx, stacname='', stcontname=''):
+    """create Azure storage container in storage account"""
+    while azureloggedin():
+        while stcontname == '':
+            while True:
+                stacname = input("Please enter storage account where the storage container will reside > ")
+                ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the storage account for the new storage container. Is this correct?'))
+                if ansrStr == 'True':
+                    storacctcmd = run('az storage account list | jq \'.[].name\' | tr -d \'"\'', hide=True, warn=True)                    
+                    storacctlist = (storacctcmd.stdout).splitlines()
+                    if stacname not in storacctlist:
+                        ansrStr = str(confirm(prompt='Storage account "'+stacname+'" does not currently exist. Would you like to create?'))
+                        if ansrStr == 'True':
+                            newstacname = stacname
+                            createstorageaccount(ctx, stacname=newstacname)
+                            break
+                        else:
+                            print('Storage account required for storage container. Exiting...')
+                            return False
+                    else:
+                        print('Using existing storage account "%s"' % (stacname))
+                        break
+                else:
+                    continue
+            while True:
+                stcontname = input("Please enter desired storage container name > ")
+                ansrStr = str(confirm(prompt='You entered "'+stcontname+'" as the desired storage container name. Is this correct?'))
+                if ansrStr == 'True':
+                    break                        
+                else:
+                    continue
+        storcntrcreate = run(('az storage container create --account-name %s --name %s') % (stacname, stcontname), hide=True, warn=True)
+        storcntrcreatejson = json.load(StringIO(storcntrcreate.stdout))
+        if storcntrcreatejson['created'] == True:
+            print('Creation of storage container "%s" in storage account "%s" succeeded.' % (stcontname, stacname))
+            return (stcontname)
+        else:
+            print('An error occured')
+            print(storcntrcreate.stderr.strip())
+            return False
+
 
 @task
 def crsterraformupdate(ctx):
