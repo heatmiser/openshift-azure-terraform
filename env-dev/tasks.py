@@ -110,6 +110,22 @@ class Spinner(object):
             time.sleep(0.25)
             sys.stdout.write('\b')
 
+def azurelogout():
+    azlogout = run('az logout', hide=True, warn=True)
+    azlogoutstdout = StringIO(azlogout.stdout.strip())
+    azlogoutstderr = StringIO(azlogout.stderr.strip())
+    if azlogoutstdout.read() == '':
+        print('Azure logout successful')
+        return True
+    elif azlogoutstderr.read() == 'ERROR: There are no active accounts.':
+        print('No active Azure sessions')
+        return True
+    else:
+        #azloginjson = json.load(StringIO(azlogout.stdout.strip()))[0]
+        print(azlogout.stdout.strip())
+        print(azlogout.stderr.strip())
+        return False
+
 def azurelogin():
     credsjson = 'azcreds.json'
     with open(credsjson, 'r') as handle:
@@ -142,6 +158,7 @@ def clear():
 @task
 def envinit(ctx):
     """intial environment preparation"""
+    azurelogout()
     print('Logging into Azure using credentials provided via azcreds.json...')
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
     if aad_client_id != "False":
