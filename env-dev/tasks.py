@@ -9,6 +9,9 @@ from invoke import task
 from io import StringIO
 from python_terraform import *
 from subprocess import PIPE, Popen
+import itertools
+import time
+import threading
 
 # Uncomment to turn on command debugging
 #logging.basicConfig(level=logging.DEBUG)
@@ -82,6 +85,30 @@ def findnreplace(file, subdict):
         f.close()
         tmp.close()
     os.replace(tmp.name, file)
+
+class Spinner(object):
+    spinner_cycle = itertools.cycle(['-', '/', '|', '\\'])
+
+    def __init__(self):
+        self.stop_running = threading.Event()
+        self.spin_thread = threading.Thread(target=self.init_spin)
+
+    def __next__(self):
+        pass
+
+    def start(self):
+        self.spin_thread.start()
+
+    def stop(self):
+        self.stop_running.set()
+        self.spin_thread.join()
+
+    def init_spin(self):
+        while not self.stop_running.is_set():
+            sys.stdout.write(self.spinner_cycle.__next__())
+            sys.stdout.flush()
+            time.sleep(0.25)
+            sys.stdout.write('\b')
 
 def azurelogin():
     credsjson = 'azcreds.json'
@@ -280,7 +307,10 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
                 print('Try again')
                 stacname = ''
                 continue
+        spinner = Spinner()
+        spinner.start()
         azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS --kind StorageV2') % (loc2use, stacname, rg2use), hide=True, warn=True)
+        spinner.stop()
         azstaccreateio = StringIO(azstaccreate.stdout)
         azstaccreatejson = json.load(azstaccreateio)
         # alternate method if needed...doesn't handle stdout/stderr as easily
@@ -326,7 +356,10 @@ def createstoragecontainer(ctx, stacname='', stcontname=''):
                     break                        
                 else:
                     continue
+        spinner = Spinner()
+        spinner.start()
         storcntrcreate = run(('az storage container create --account-name %s --name %s') % (stacname, stcontname), hide=True, warn=True)
+        spinner.stop()
         storcntrcreatejson = json.load(StringIO(storcntrcreate.stdout))
         if storcntrcreatejson['created'] == True:
             print('Creation of storage container "%s" in storage account "%s" succeeded.' % (stcontname, stacname))
