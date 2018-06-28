@@ -135,7 +135,7 @@ def azurelogin():
     azloginjson = json.load(azloginio)[0]
     if azloginjson['state'] == 'Enabled':
         print('Azure login via service principal "%s" succeeded.' % (config["aad_client_id"]))
-        return (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"]), azloginjson['id']
+        return (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"], azloginjson['id'])
     else:
         print('Service principal login unsuccessful, please ensure credentials in azcreds.json are correct.')
         print(azlogin.stderr.strip())
@@ -161,6 +161,22 @@ def envinit(ctx):
     azurelogout()
     print('Logging into Azure using credentials provided via azcreds.json...')
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
+    rg2use, loc2use = createresourcegroup(ctx)
+    stac2use = createstorageaccount(ctx, resourcegroup=rg2use, location=loc2use)
+    stcntr2use = createstoragecontainer(ctx, stacname=stac2use)
+    stackey2use = run(('az storage account keys list --resource-group %s --account-name %s') % (rg2use, stac2use), hide=True, warn=True)
+    # 00beconf1.tfvars in env root
+    sublocs = ['resourcegroupname',
+            'tfstatestorageaccountname',
+            'tfstatestorageaccountkey']
+    provided = [rg2use,
+                stac2use,
+                stackey2use]
+    subdict = dict(zip(sublocs, provided))
+    findnreplace('00beconf1.tfvars', subdict)
+    # 00beconf2.tfvars unique in each env tier component directory
+    with open("00beconf2.tfvars", "a") as w:
+        w.write("container_name =\"%s\"\n" % (stcntr2use))
     if aad_client_id != "False":
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
@@ -198,7 +214,6 @@ def envinit(ctx):
                         os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
                         symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                         symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-        rg2use, loc2use = createresourcegroup(ctx)
         sublocs = ['azureserviceprincipalid',
                 'azureserviceprincipalsecret',
                 'azuretenantid',
