@@ -237,7 +237,10 @@ def createresourcegroup(ctx):
                 rglocation = selectlocation(ctx)
                 ansrStr = str(confirm(prompt='Creating resource group "'+azrgname+'" in location "'+rglocation+'". Is this correct?'))
                 if ansrStr == 'True':
+                    spinner = Spinner()
+                    spinner.start()
                     azrgcreate = run(('az group create -l %s -n %s') % (rglocation, azrgname), hide=True, warn=True)
+                    spinner.stop()
                     azrgcreateio = StringIO(azrgcreate.stdout.strip())
                     azrgcreatejson = json.load(azrgcreateio)
                     if azrgcreatejson['properties']['provisioningState'] == 'Succeeded':
