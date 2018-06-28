@@ -3,12 +3,12 @@ import sys
 import json
 import glob
 import logging
-import tempfile
 import re, shutil, tempfile
 from invoke import run
 from invoke import task
 from io import StringIO
 from python_terraform import *
+from subprocess import PIPE, Popen
 
 # Uncomment to turn on command debugging
 #logging.basicConfig(level=logging.DEBUG)
@@ -55,6 +55,14 @@ def confirm(prompt=None, resp=False):
             return True
         if ans == 'n' or ans == 'N' or ans == 'no' or ans == 'No':
             return False
+
+def cmdline(command):
+    process = Popen(
+        args=command,
+        stdout=PIPE,
+        shell=True
+    )
+    return process.communicate()[0]
 
 def replace_all(text, dic):
     for y, z in dic.items():
@@ -193,6 +201,7 @@ def createresourcegroup(ctx):
                 if ansrStr == 'True':
                     print('Use existing resouce group')
                     rglocation = run(('az group show -n %s | jq \'.location\' | tr -d \'"\'') % (azrgname), hide=True, warn=True)
+                    rglocation = rglocation.stdout.strip()
                     return (azrgname, rglocation)
                 else:
                     continue
@@ -271,11 +280,12 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
                 print('Try again')
                 stacname = ''
                 continue
-        print('enter storage create code')
         azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS') % (loc2use, stacname, rg2use), hide=True, warn=True)
-        azstaccreate.wait()
         azstaccreateio = StringIO(azstaccreate.stdout)
         azstaccreatejson = json.load(azstaccreateio)
+        # alternate method if needed...doesn't handle stdout/stderr as easily
+        #azstaccreate = cmdline(("az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS") % (loc2use, stacname, rg2use))
+        #azstaccreatejson = json.loads(azstaccreate.decode("utf-8"))
         if azstaccreatejson['provisioningState'] == 'Succeeded':
             print('Creation of storage account "%s" in resource group "%s" succeeded.' % (stacname, rg2use))
             return (stacname)
