@@ -134,6 +134,11 @@ tasks:
     desc: create azure storage account
     cmds:
       - invoke createstorageaccount
+      
+  azcreatestoragecontainer:
+    desc: create azure storage container
+    cmds:
+      - invoke createstoragecontainer
 
   azcrsterraformupdate:
     desc: update crsapp and crsregistry modules with bootstrap generated main.tf terraform scripts
