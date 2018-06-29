@@ -161,13 +161,18 @@ def envinit(ctx):
     azurelogout()
     print('Logging into Azure using credentials provided via azcreds.json...')
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
+    print('Create new or select existing resource group for OpenShift deployment...')
     rg2use, loc2use = createresourcegroup(ctx)
+    print('Create storage account to hold Terraform state storage containers.')
+    print('Storage account names are scoped globally (across subscriptions).')
+    print('and should be between 3 and 24 characters, lowercase letters and numbers.')
+    print('Example: tfstateocp001')
     stac2use = createstorageaccount(ctx, resourcegroup=rg2use, location=loc2use)
     stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (rg2use, stac2use), hide=True, warn=True)
     stackeyio = StringIO(stackeycmd.stdout)
     stackeyjson = json.load(stackeyio)[0]
     stackey2use = stackeyjson['value']
-    print('Choose a project name that will be used a base naming convention throughout')
+    print('Choose a project name that will be used for base naming convention throughout')
     print('the project.  It will be used as the base name for storage containers,')
     print('virtual machine names, project object tags, etc. It should be short, yet')
     print('somewhat descriptive and should consist or alphanumeric characters only,')
@@ -175,21 +180,12 @@ def envinit(ctx):
     print('something along the lines of \'acmeocp001\' is suggested.')
     while True:
         azprojectname = input("Please enter desired project name > ")
-        ansrStr = str(confirm(prompt='You entered "'+azprojectname+'" as the desired resource group name. Is this correct?'))
+        ansrStr = str(confirm(prompt='You entered "'+azprojectname+'" as the desired base project name. Is this correct?'))
         if ansrStr == 'True':
             break
         else:
             print('Try again')
             continue
-    # 00beconf1.tfvars in env root
-    sublocs = ['resourcegroupname',
-            'tfstatestorageaccountname',
-            'tfstatestorageaccountkey']
-    provided = [rg2use,
-                stac2use,
-                stackey2use]
-    subdict = dict(zip(sublocs, provided))
-    findnreplace('00beconf1.tfvars', subdict)
     if aad_client_id != "False":
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
@@ -199,6 +195,16 @@ def envinit(ctx):
         for i in reversed(range(len(sampletfvar))):
             print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
             shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
+        # 00beconf1.tfvars in env root
+        sublocs = ['resourcegroupname',
+                'tfstatestorageaccountname',
+                'tfstatestorageaccountkey']
+        provided = [rg2use,
+                    stac2use,
+                    stackey2use]
+        subdict = dict(zip(sublocs, provided))
+        findnreplace('00beconf1.tfvars', subdict)
+        # tfvars file symlinks
         realtfvars = glob.glob('*.tfvars')
         tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
         print('Setting tfvars file symlinks to appropriate %s tier component locations,' % envdir)
