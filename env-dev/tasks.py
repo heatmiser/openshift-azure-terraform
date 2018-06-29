@@ -161,8 +161,10 @@ def envinit(ctx):
     azurelogout()
     print('Logging into Azure using credentials provided via azcreds.json...')
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
-    print('Create new or select existing resource group for OpenShift deployment...')
+    print('')
+    print('Create new or enter existing resource group for OpenShift deployment...')
     rg2use, loc2use = createresourcegroup(ctx)
+    print('')
     print('Create storage account to hold Terraform state storage containers.')
     print('Storage account names are scoped globally (across subscriptions).')
     print('and should be between 3 and 24 characters, lowercase letters and numbers.')
@@ -172,6 +174,7 @@ def envinit(ctx):
     stackeyio = StringIO(stackeycmd.stdout)
     stackeyjson = json.load(stackeyio)[0]
     stackey2use = stackeyjson['value']
+    print('')
     print('Choose a project name that will be used for base naming convention throughout')
     print('the project.  It will be used as the base name for storage containers,')
     print('virtual machine names, project object tags, etc. It should be short, yet')
@@ -239,6 +242,7 @@ def envinit(ctx):
                         os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
                         symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                         symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+        print('')
         print('Finally, we will create or select an existing resource group where the base')
         print('VM images will be located. It is recommended that this be a separate resource')
         print('group from any OpenShift resource groups and should be considered as a')
@@ -248,7 +252,7 @@ def envinit(ctx):
         vmrg, vmrgloc = createresourcegroup(ctx)
         stac4vm = createstorageaccount(ctx, resourcegroup=vmrg, location=vmrgloc)
         stcntr4vm = createstoragecontainer(ctx, stacname=stac4vm, stcontname='images')
-        # 01base.tfvars in env root
+        # 01base.tfvars in env-<dev/qa/prod> root
         sublocs = ['azureserviceprincipalid',
                 'azureserviceprincipalsecret',
                 'azuretenantid',
@@ -266,7 +270,7 @@ def envinit(ctx):
                     azprojectname,
                     vmrg]
         subdict = dict(zip(sublocs, provided))
-        findnreplace(baseprojectdir+'/01base.tfvars', subdict)
+        findnreplace(baseprojectdir+'/'+envdir+'/01base.tfvars', subdict)
     else:
         print('An error occured logging into Azure, correct the issue and try again.')
         exit
