@@ -233,22 +233,6 @@ def envinit(ctx):
                         os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
                         symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                         symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
-        sublocs = ['azureserviceprincipalid',
-                'azureserviceprincipalsecret',
-                'azuretenantid',
-                'azuresubscriptionid',
-                'ocpresourcegroupname',
-                'southcentralus',
-                'projectname']
-        provided = [aad_client_id,
-                    aad_client_secret,
-                    tenant_id,
-                    subscription_id,
-                    rg2use,
-                    loc2use,
-                    azprojectname]
-        subdict = dict(zip(sublocs, provided))
-        findnreplace('01base.tfvars', subdict)
         print('Finally, we will create or select an existing resource group where the base')
         print('VM images will be located. It is recommended that this be a separate resource')
         print('group from any OpenShift resource groups and should be considered as a')
@@ -258,6 +242,25 @@ def envinit(ctx):
         vmrg, vmrgloc = createresourcegroup(ctx)
         stac4vm = createstorageaccount(ctx, resourcegroup=vmrg, location=vmrgloc)
         stcntr4vm = createstoragecontainer(ctx, stacname=stac2use, stcontname='images')
+        # 01base.tfvars in env root
+        sublocs = ['azureserviceprincipalid',
+                'azureserviceprincipalsecret',
+                'azuretenantid',
+                'azuresubscriptionid',
+                'ocpresourcegroupname',
+                'southcentralus',
+                'projectname',
+                'vmimageresourcegroupname']
+        provided = [aad_client_id,
+                    aad_client_secret,
+                    tenant_id,
+                    subscription_id,
+                    rg2use,
+                    loc2use,
+                    azprojectname,
+                    vmrg]
+        subdict = dict(zip(sublocs, provided))
+        findnreplace('01base.tfvars', subdict)
     else:
         print('An error occured logging into Azure, correct the issue and try again.')
         exit
