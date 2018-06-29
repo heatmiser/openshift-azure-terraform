@@ -198,7 +198,7 @@ def envinit(ctx):
         for i in reversed(range(len(sampletfvar))):
             print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
             shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
-        # 00beconf1.tfvars in env root
+        # 00beconf1.tfvars in env-<dev/qa/prod> root
         sublocs = ['resourcegroupname',
                 'tfstatestorageaccountname',
                 'tfstatestorageaccountkey']
@@ -206,22 +206,22 @@ def envinit(ctx):
                     stac2use,
                     stackey2use]
         subdict = dict(zip(sublocs, provided))
-        findnreplace('00beconf1.tfvars', subdict)
+        findnreplace(baseprojectdir+'/'+envdir+'/00beconf1.tfvars', subdict)
         # tfvars file symlinks
         realtfvars = glob.glob('*.tfvars')
         tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
         print('Setting tfvars file symlinks to appropriate %s tier component locations,' % envdir)
-        print('as well as creating tier component specific Terraform state storage')
-        print('container definistions...')
+        print('as well as defining tier component specific Terraform state storage')
+        print('container definitions...')
         for tier in range(len(tierlist)):
             print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
             os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+            # 00beconf2.tfvars unique in each env tier component directory
+            with open("00beconf2.tfvars", "a") as w:
+                w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
+                w.close()
             for i in reversed(range(len(realtfvars))):
                 os.symlink('../'+realtfvars[i], realtfvars[i])
-                # 00beconf2.tfvars unique in each env tier component directory
-                with open("00beconf2.tfvars", "a") as w:
-                   w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
-                   w.close()
             if str(tierlist[tier]) != 'bootstrap':
                 print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
                 #os.symlink('../../variables.tf', 'variables.tf')
