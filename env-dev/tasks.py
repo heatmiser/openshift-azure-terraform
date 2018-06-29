@@ -247,7 +247,7 @@ def envinit(ctx):
         print('location as the OpenShift resource group.')
         vmrg, vmrgloc = createresourcegroup(ctx)
         stac4vm = createstorageaccount(ctx, resourcegroup=vmrg, location=vmrgloc)
-        stcntr4vm = createstoragecontainer(ctx, stacname=stac2use, stcontname='images')
+        stcntr4vm = createstoragecontainer(ctx, stacname=stac4vm, stcontname='images')
         # 01base.tfvars in env root
         sublocs = ['azureserviceprincipalid',
                 'azureserviceprincipalsecret',
