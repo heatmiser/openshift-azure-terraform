@@ -266,7 +266,7 @@ def envinit(ctx):
                     azprojectname,
                     vmrg]
         subdict = dict(zip(sublocs, provided))
-        findnreplace('01base.tfvars', subdict)
+        findnreplace(baseprojectdir+'/01base.tfvars', subdict)
     else:
         print('An error occured logging into Azure, correct the issue and try again.')
         exit
