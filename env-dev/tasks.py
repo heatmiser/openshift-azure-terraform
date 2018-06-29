@@ -163,8 +163,24 @@ def envinit(ctx):
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
     rg2use, loc2use = createresourcegroup(ctx)
     stac2use = createstorageaccount(ctx, resourcegroup=rg2use, location=loc2use)
-    stcntr2use = createstoragecontainer(ctx, stacname=stac2use)
-    stackey2use = run(('az storage account keys list --resource-group %s --account-name %s') % (rg2use, stac2use), hide=True, warn=True)
+    stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (rg2use, stac2use), hide=True, warn=True)
+    stackeyio = StringIO(stackeycmd.stdout)
+    stackeyjson = json.load(stackeyio)[0]
+    stackey2use = stackeyjson['value']
+    print('Choose a project name that will be used a base naming convention throughout')
+    print('the project.  It will be used as the base name for storage containers,')
+    print('virtual machine names, project object tags, etc. It should be short, yet')
+    print('somewhat descriptive and should consist or alphanumeric characters only,')
+    print('ie. for a company "Acme Co." and this being a Red Hat OCP deployment,')
+    print('something along the lines of \'acmeocp001\' is suggested.')
+    while True:
+        azprojectname = input("Please enter desired project name > ")
+        ansrStr = str(confirm(prompt='You entered "'+azprojectname+'" as the desired resource group name. Is this correct?'))
+        if ansrStr == 'True':
+            break
+        else:
+            print('Try again')
+            continue
     # 00beconf1.tfvars in env root
     sublocs = ['resourcegroupname',
             'tfstatestorageaccountname',
@@ -174,9 +190,6 @@ def envinit(ctx):
                 stackey2use]
     subdict = dict(zip(sublocs, provided))
     findnreplace('00beconf1.tfvars', subdict)
-    # 00beconf2.tfvars unique in each env tier component directory
-    with open("00beconf2.tfvars", "a") as w:
-        w.write("container_name =\"%s\"\n" % (stcntr2use))
     if aad_client_id != "False":
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
@@ -188,12 +201,18 @@ def envinit(ctx):
             shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
         realtfvars = glob.glob('*.tfvars')
         tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
-        print('Setting tfvars file symlinks to appropriate %s tier component locations...' % envdir)
+        print('Setting tfvars file symlinks to appropriate %s tier component locations,' % envdir)
+        print('as well as creating tier component specific Terraform state storage')
+        print('container definistions...')
         for tier in range(len(tierlist)):
             print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
             os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
             for i in reversed(range(len(realtfvars))):
                 os.symlink('../'+realtfvars[i], realtfvars[i])
+                # 00beconf2.tfvars unique in each env tier component directory
+                with open("00beconf2.tfvars", "a") as w:
+                   w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
+                   w.close()
             if str(tierlist[tier]) != 'bootstrap':
                 print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
                 #os.symlink('../../variables.tf', 'variables.tf')
@@ -219,15 +238,26 @@ def envinit(ctx):
                 'azuretenantid',
                 'azuresubscriptionid',
                 'ocpresourcegroupname',
-                'southcentralus']
+                'southcentralus',
+                'projectname']
         provided = [aad_client_id,
                     aad_client_secret,
                     tenant_id,
                     subscription_id,
                     rg2use,
-                    loc2use]
+                    loc2use,
+                    azprojectname]
         subdict = dict(zip(sublocs, provided))
         findnreplace('01base.tfvars', subdict)
+        print('Finally, we will create or select an existing resource group where the base')
+        print('VM images will be located. It is recommended that this be a separate resource')
+        print('group from any OpenShift resource groups and should be considered as a')
+        print('\"long-life\" resouce group, as it will be advantageous to utilize for other')
+        print('deployments in an ongoing manner. NOTE that it should have the same Azure')
+        print('location as the OpenShift resource group.')
+        vmrg, vmrgloc = createresourcegroup(ctx)
+        stac4vm = createstorageaccount(ctx, resourcegroup=vmrg, location=vmrgloc)
+        stcntr4vm = createstoragecontainer(ctx, stacname=stac2use, stcontname='images')
     else:
         print('An error occured logging into Azure, correct the issue and try again.')
         exit
