@@ -1,0 +1,7 @@
+# Use RHN user password or RHN prod key
+rhn_passwd = "glusterkey01"
+
+# *** override settings for VM size and count ***
+#gluster_vm_size = "Standard_F16s_v2"
+#crsreg_instance_count ="3"
+
