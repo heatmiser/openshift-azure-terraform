@@ -176,7 +176,7 @@ def envinit(ctx):
     stackey2use = stackeyjson['value']
     print('')
     print('Choose a project name that will be used as the base naming convention throughout')
-    print('the project.  It will be used as the base name for storage containers,virtual')
+    print('the project.  It will be used as the base name for storage containers, virtual')
     print('machine names, project object tags, etc. It should be short, yet somewhat')
     print('descriptive and should consist of alphanumeric characters only. For example, given ')
     print('a company "Acme Co." and this being a Red Hat OCP deployment, something along the')
@@ -189,6 +189,8 @@ def envinit(ctx):
         else:
             print('Try again')
             continue
+    # create bootstrap tfstate storage container
+    bootstrapstcntr = createstoragecontainer(ctx, stacname=stac2use, stcontname=azprojectname+'-bootstrap')
     if aad_client_id != "False":
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
@@ -282,7 +284,7 @@ def envinit(ctx):
 @task
 def sshgenkeypair(ctx):
     """create ECDSA public/private key pair"""
-    basekeyname = input("Please enter a base filename to use for a newly generated SSH key pair > ")
+    basekeyname = input("Please enter a base prefix to use for a newly generated SSH key pair > ")
     keycomment = input("Please enter a comment for the public key, format like 'username@domain.com' recommended > ")
     genkeypair = run(('ssh-keygen -t ecdsa -b 521 -C %s -f %s_ecdsa-sha2-nistp521 -N \'\'') % (keycomment, basekeyname), hide=True, warn=True)
     print('Adding JSON compatible version of private key...')
