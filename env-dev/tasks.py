@@ -196,7 +196,11 @@ def envinit(ctx):
         print('Copying sample tfvars into place...')
         rootDir=os.getcwd()
         baseprojectdir, envdir = os.path.split(os.getcwd())
-        sampletfvar = glob.glob('0*.sample')
+        #sampletfvar = glob.glob('0*.sample')
+        sampletfvar = []
+        for filename in glob.iglob('**/*.sample', recursive=True):
+            if 'azcreds.json.sample' not in filename:
+                sampletfvar.append(filename)
         for i in reversed(range(len(sampletfvar))):
             print('Copying %s to %s' % (sampletfvar[i],os.path.splitext(sampletfvar[i])[0]))
             shutil.copy(sampletfvar[i],os.path.splitext(sampletfvar[i])[0])
@@ -245,7 +249,7 @@ def envinit(ctx):
                         symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                         symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
         print('')
-        print('Finally, we will create or select an existing resource group where the base')
+        print('Next, we will create or select an existing resource group where the base')
         print('VM images will be located. It is recommended that this be a separate resource')
         print('group from any OpenShift resource groups and should be considered as a')
         print('\"long-life\" resouce group, as it will be advantageous to utilize for other')
@@ -277,9 +281,36 @@ def envinit(ctx):
                     vmrg]
         subdict = dict(zip(sublocs, provided))
         findnreplace(baseprojectdir+'/'+envdir+'/01base.tfvars', subdict)
-    else:
-        print('An error occured logging into Azure, correct the issue and try again.')
-        exit
+        print('')
+        print('Finally, if desired, we will create a SSH key pair to use for accessing')
+        print('our OpenShift cluster.')
+        sshproceed = confirm(prompt='Would you like to create a SSH key pair at this time?')
+        if sshproceed == True:
+            sshbaseprefix = sshgenkeypair(ctx)
+            sublocs = ['openshift_id.pub',
+            'openshift_id.forJSON']
+            provided = [sshbaseprefix+'_ecdsa-sha2-nistp521.pub',
+                        sshbaseprefix+'_ecdsa-sha2-nistp521.forJSON']
+            subdict = dict(zip(sublocs, provided))
+            findnreplace(baseprojectdir+'/'+envdir+'/02ocp.tfvars', subdict)
+        else:
+            print('You have elected not to create a SSH key pair.  You will need to')
+            print('create and place a SSH public and private key pair in the ssh directory')
+            print('located in the appropriate env-<qa/dev/prod> environment directory')
+            print('and then edit the following entries in the 02ocp.tfvars file located')
+            print('in the root of the environment directory:')
+            print(' - ssh_public_key_path')
+            print(' - connection_private_ssh_key_path')
+            print('Note that the connection_private_ssh_key_path entry must point to a')
+            print('"JSON-readied" version of the private key.')
+            print('Use the following command to accomplish this with your supplied private')
+            print('key file:')
+            print('sed \':a;N;$!ba;s/\\n/\\\\n/g\' private_key_file_name > private_key_file_name.forJSON')
+        print('')
+        print('Now proceed to make appropriate value entries in the following variables')
+        print('files, located relative to the base env-<qa/dev/prod> environment directory:')
+        for i in reversed(range(len(sampletfvar))):
+            print(' --> %s' % (os.path.splitext(sampletfvar[i])[0]))
 
 @task
 def sshgenkeypair(ctx):
@@ -292,9 +323,11 @@ def sshgenkeypair(ctx):
     keyfile = os.getcwd()+'/%s_ecdsa-sha2-nistp521' % basekeyname
     keyfile4json = os.getcwd()+'/%s_ecdsa-sha2-nistp521.forJSON' % basekeyname
     shutil.copy(keyfile,keyfile4json)
+    # Note: this sed command does the same thing, would have to add escapes for python run command: sed ':a;N;s/\n/\\n/;ta'
     sed4json = run(('cat "%s" | sed \':a;N;$!ba;s/\\n/\\\\n/g\' > "%s"') % (keyfile, keyfile4json), hide=True, warn=True)
     str(sed4json).strip()
     print('SSH key pair generation complete.')
+    return basekeyname
 
 @task
 def createresourcegroup(ctx):
