@@ -477,13 +477,18 @@ def createstoragecontainer(ctx, stacname='', stcontname=''):
         spinner.start()
         storcntrcreate = run(('az storage container create --account-name %s --name %s') % (stacname, stcontname), hide=True, warn=True)
         spinner.stop()
-        storcntrcreatejson = json.load(StringIO(storcntrcreate.stdout))
+        try:
+            storcntrcreatejson = json.load(StringIO(storcntrcreate.stdout))
+        except ValueError:
+            print('An error occured')
+            print(storcntrcreate.stderr.strip())
+            return False
         if storcntrcreatejson['created'] == True:
             print('Creation of storage container "%s" in storage account "%s" succeeded.' % (stcontname, stacname))
             return (stcontname)
         else:
-            print('An error occured')
-            print(storcntrcreate.stderr.strip())
+            print('Creation of storage container "%s" failed.' % (stcontname))
+            print(storcntrcreate.stdout.strip())
             return False
 
 
