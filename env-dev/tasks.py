@@ -258,6 +258,7 @@ def envinit(ctx):
                         os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
                         symlinkcmd = ('ln -s ../../modules/%s/%s .' % (tierlist[tier],extravars[varfile]))
                         symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+        os.chdir(baseprojectdir+'/'+envdir)
         print('')
         print('Next, we will create or select an existing resource group where the base')
         print('VM images will be located. It is recommended that this be a separate resource')
@@ -321,7 +322,6 @@ def envinit(ctx):
         print('files, located relative to the base env-<qa/dev/prod> environment directory:')
         for i in reversed(range(len(sampletfvar))):
             print(' --> %s' % (os.path.splitext(sampletfvar[i])[0]))
-        os.chdir(baseprojectdir+'/'+envdir)
 
 @task
 def sshgenkeypair(ctx):
