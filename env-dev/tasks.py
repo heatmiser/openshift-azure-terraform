@@ -480,8 +480,11 @@ def createstoragecontainer(ctx, stacname='', stcontname=''):
         try:
             storcntrcreatejson = json.load(StringIO(storcntrcreate.stdout))
         except ValueError:
-            print('An error occured')
-            print(storcntrcreate.stderr.strip())
+            errmsg = storcntrcreate.stderr.strip()
+            errmsglist = errmsg.splitlines()
+            for i in range(len(errmsglist)):
+                if "ERROR" in errmsglist[i]:
+                    print(errmsglist[i])
             return False
         if storcntrcreatejson['created'] == True:
             print('Creation of storage container "%s" in storage account "%s" succeeded.' % (stcontname, stacname))
