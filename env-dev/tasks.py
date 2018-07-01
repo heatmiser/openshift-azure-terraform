@@ -130,7 +130,10 @@ def azurelogin():
     credsjson = 'azcreds.json'
     with open(credsjson, 'r') as handle:
         config = json.load(handle)
+    spinner = Spinner()
+    spinner.start()
     azlogin = run(('az login --service-principal --username %s --password %s --tenant %s') % (config["aad_client_id"], config["aad_client_secret"], config["tenant_id"]), hide=True, warn=True)
+    spinner.stop()
     azloginio = StringIO(azlogin.stdout.strip())
     azloginjson = json.load(azloginio)[0]
     if azloginjson['state'] == 'Enabled':
@@ -170,7 +173,10 @@ def envinit(ctx):
     print('and should be between 3 and 24 characters, lowercase letters and numbers.')
     print('Example: tfstateocp001')
     stac2use = createstorageaccount(ctx, resourcegroup=rg2use, location=loc2use)
+    spinner = Spinner()
+    spinner.start()
     stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (rg2use, stac2use), hide=True, warn=True)
+    spinner.stop()
     stackeyio = StringIO(stackeycmd.stdout)
     stackeyjson = json.load(stackeyio)[0]
     stackey2use = stackeyjson['value']
@@ -178,9 +184,9 @@ def envinit(ctx):
     print('Choose a project name that will be used as the base naming convention throughout')
     print('the project.  It will be used as the base name for storage containers, virtual')
     print('machine names, project object tags, etc. It should be short, yet somewhat')
-    print('descriptive and should consist of alphanumeric characters only. For example, given ')
-    print('a company "Acme Co." and this being a Red Hat OCP deployment, something along the')
-    print('lines of \'acmeocp001\' is suggested.')
+    print('descriptive and should consist of alphanumeric characters only. For example,')
+    print('given a company "Acme Co." and this being a Red Hat OCP deployment, something')
+    print('along the lines of \'acmeocp001\' is suggested.')
     while True:
         azprojectname = input("Please enter desired project name > ")
         ansrStr = str(confirm(prompt='You entered "'+azprojectname+'" as the desired base project name. Is this correct?'))
@@ -192,6 +198,7 @@ def envinit(ctx):
     # create bootstrap tfstate storage container
     bootstrapstcntr = createstoragecontainer(ctx, stacname=stac2use, stcontname=azprojectname+'-bootstrap')
     if aad_client_id != "False":
+        print('')
         print('Performing initial environment preparation steps...')
         print('Copying sample tfvars into place...')
         rootDir=os.getcwd()
@@ -216,9 +223,10 @@ def envinit(ctx):
         # tfvars file symlinks
         realtfvars = glob.glob('*.tfvars')
         tierlist = [ 'bastion', 'bootstrap', 'crsapp', 'crsreg', 'infra', 'master', 'network', 'network-crs', 'node', 'openvpn']
+        print('')
         print('Setting tfvars file symlinks to appropriate %s tier component locations,' % envdir)
-        print('as well as defining tier component specific Terraform state storage')
-        print('container definitions...')
+        print('as well as defining tier component specific Terraform state storage container')
+        print('definitions...')
         for tier in range(len(tierlist)):
             print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
             os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
@@ -229,10 +237,12 @@ def envinit(ctx):
             for i in reversed(range(len(realtfvars))):
                 os.symlink('../'+realtfvars[i], realtfvars[i])
             if str(tierlist[tier]) != 'bootstrap':
+                print('')
                 print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
                 #os.symlink('../../variables.tf', 'variables.tf')
                 symlinkcmd = ('ln -s ../../variables.tf .')
                 symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
+        print('')
         print('Setting variables.tf symlink in appropriate component modules locations...')
         for tier in range(len(tierlist)):
             if str(tierlist[tier]) != 'bootstrap':
@@ -311,15 +321,17 @@ def envinit(ctx):
         print('files, located relative to the base env-<qa/dev/prod> environment directory:')
         for i in reversed(range(len(sampletfvar))):
             print(' --> %s' % (os.path.splitext(sampletfvar[i])[0]))
+        os.chdir(baseprojectdir+'/'+envdir)
 
 @task
 def sshgenkeypair(ctx):
     """create ECDSA public/private key pair"""
+    rootDir=os.getcwd()
+    os.chdir(rootDir+'/ssh')
     basekeyname = input("Please enter a base prefix to use for a newly generated SSH key pair > ")
     keycomment = input("Please enter a comment for the public key, format like 'username@domain.com' recommended > ")
     genkeypair = run(('ssh-keygen -t ecdsa -b 521 -C %s -f %s_ecdsa-sha2-nistp521 -N \'\'') % (keycomment, basekeyname), hide=True, warn=True)
     print('Adding JSON compatible version of private key...')
-    rootDir=os.getcwd()
     keyfile = os.getcwd()+'/%s_ecdsa-sha2-nistp521' % basekeyname
     keyfile4json = os.getcwd()+'/%s_ecdsa-sha2-nistp521.forJSON' % basekeyname
     shutil.copy(keyfile,keyfile4json)
@@ -327,6 +339,7 @@ def sshgenkeypair(ctx):
     sed4json = run(('cat "%s" | sed \':a;N;$!ba;s/\\n/\\\\n/g\' > "%s"') % (keyfile, keyfile4json), hide=True, warn=True)
     str(sed4json).strip()
     print('SSH key pair generation complete.')
+    os.chdir(rootDir)
     return basekeyname
 
 @task
@@ -341,7 +354,10 @@ def createresourcegroup(ctx):
                 ansrStr = str(confirm(prompt='Resource group "'+azrgname+'" already exists, are you sure you want to use this resource group?'))
                 if ansrStr == 'True':
                     print('Use existing resouce group')
+                    spinner = Spinner()
+                    spinner.start()
                     rglocation = run(('az group show -n %s | jq \'.location\' | tr -d \'"\'') % (azrgname), hide=True, warn=True)
+                    spinner.stop()
                     rglocation = rglocation.stdout.strip()
                     return (azrgname, rglocation)
                 else:
@@ -375,7 +391,10 @@ def listresourcegroups(ctx):
     """list current Azure resource groups"""
     del ctx
     azgrplistcmd = 'az group list'
+    spinner = Spinner()
+    spinner.start()
     azgrplistraw = run(azgrplistcmd, hide=True, warn=True)
+    spinner.stop()
     azgrplistio = StringIO(azgrplistraw.stdout)
     azgrplistjson = json.load(azgrplistio)
     for i in range(len(azgrplistjson)):
@@ -386,7 +405,10 @@ def selectlocation(ctx):
     """select an existing Azure resource group"""
     del ctx
     azlocationlistcmd = 'az account list-locations'
+    spinner = Spinner()
+    spinner.start()
     azlocationlistraw = run(azlocationlistcmd, hide=True, warn=True)
+    spinner.stop()
     azlocationlistio = StringIO(azlocationlistraw.stdout)
     azlocationlistjson = json.load(azlocationlistio)
     print("Available locations\n")
@@ -450,7 +472,10 @@ def createstoragecontainer(ctx, stacname='', stcontname=''):
                 stacname = input("Please enter storage account where the storage container will reside > ")
                 ansrStr = str(confirm(prompt='You entered "'+stacname+'" as the storage account for the new storage container. Is this correct?'))
                 if ansrStr == 'True':
+                    spinner = Spinner()
+                    spinner.start()
                     storacctcmd = run('az storage account list | jq \'.[].name\' | tr -d \'"\'', hide=True, warn=True)                    
+                    spinner.stop()
                     storacctlist = (storacctcmd.stdout).splitlines()
                     if stacname not in storacctlist:
                         ansrStr = str(confirm(prompt='Storage account "'+stacname+'" does not currently exist. Would you like to create?'))
