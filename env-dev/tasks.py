@@ -270,7 +270,7 @@ def envinit(ctx):
         vmrg, vmrgloc = createresourcegroup(ctx)
         print('')
         print('Now create a storage account where base RHEL VM images will be stored. These')
-        print('VM images can then be utilized during OpenShift component deployment.')
+        print('VM images can then be utilized during OpenShift cluster deployment.')
         stac4vm = createstorageaccount(ctx, resourcegroup=vmrg, location=vmrgloc)
         stcntr4vm = createstoragecontainer(ctx, stacname=stac4vm, stcontname='images')
         # 01base.tfvars in env-<dev/qa/prod> root
