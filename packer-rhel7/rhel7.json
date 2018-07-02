@@ -3,8 +3,8 @@
     "version": "1.0",
     "buildtime": "{{isotime \"2006-01-02-030405\"}}",
     "username": "{{env `USER`}}",
-    "USERNAME_ORG": "{{env `username_org`}}",
-    "PASSWORD_ACT_KEY": "{{env `password_act_key`}}"
+    "rhn_username_org": "",
+    "rhn_password_act_key": ""
   },
   "provisioners": [{
     "type": "shell",
@@ -69,7 +69,7 @@
       "net_device": "virtio-net",
       "disk_interface": "virtio",
       "boot_command": [
-        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg USERNAME_ORG={{ user `USERNAME_ORG` }} PASSWORD_ACT_KEY={{ user `PASSWORD_ACT_KEY` }}<enter><wait>"
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg USERNAME_ORG={{ user `rhn_username_org` }} PASSWORD_ACT_KEY={{ user `rhn_password_act_key` }}<enter><wait>"
       ]
     },{
       "name": "rhel-7-cloud-ci-azure",
