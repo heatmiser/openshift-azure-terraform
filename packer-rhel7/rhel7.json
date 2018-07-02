@@ -1,7 +1,10 @@
 {
   "variables": {
     "version": "1.0",
-    "buildtime": "{{isotime \"2006-01-02-030405\"}}"
+    "buildtime": "{{isotime \"2006-01-02-030405\"}}",
+    "username": "{{env `USER`}}",
+    "USERNAME_ORG": "{{env `username_org`}}",
+    "PASSWORD_ACT_KEY": "{{env `password_act_key`}}"
   },
   "provisioners": [{
     "type": "shell",
@@ -46,7 +49,7 @@
       ],
       "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
       "iso_checksum_type": "sha256",
-      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "iso_url": "file:///home/{{ user `username` }}/Downloads/rhel-server-7.4-x86_64-dvd.iso",
       "ssh_wait_timeout": "30s",
       "shutdown_command": "shutdown -P now",
       "disk_size": 51200,
@@ -66,7 +69,7 @@
       "net_device": "virtio-net",
       "disk_interface": "virtio",
       "boot_command": [
-        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg<enter><wait>"
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg USERNAME_ORG={{ user `USERNAME_ORG` }} PASSWORD_ACT_KEY={{ user `PASSWORD_ACT_KEY` }}<enter><wait>"
       ]
     },{
       "name": "rhel-7-cloud-ci-azure",
@@ -77,7 +80,7 @@
       ],
       "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
       "iso_checksum_type": "sha256",
-      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "iso_url": "file:///home/{{ user `username` }}/Downloads/rhel-server-7.4-x86_64-dvd.iso",
       "ssh_wait_timeout": "30s",
       "shutdown_command": "shutdown -P now",
       "disk_size": 51200,
@@ -108,7 +111,7 @@
       ],
       "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
       "iso_checksum_type": "sha256",
-      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "iso_url": "file:///home/{{ user `username` }}/Downloads/rhel-server-7.4-x86_64-dvd.iso",
       "ssh_wait_timeout": "30s",
       "shutdown_command": "shutdown -P now",
       "disk_size": 51200,
@@ -139,7 +142,7 @@
       ],
       "iso_checksum": "431a58c8c0351803a608ffa56948c5a7861876f78ccbe784724dd8c987ff7000",
       "iso_checksum_type": "sha256",
-      "iso_url": "file:///home/my_user_name/Downloads/rhel-server-7.4-x86_64-dvd.iso",
+      "iso_url": "file:///home/{{ user `username` }}/Downloads/rhel-server-7.4-x86_64-dvd.iso",
       "ssh_wait_timeout": "30s",
       "shutdown_command": "shutdown -P now",
       "disk_size": 51200,
