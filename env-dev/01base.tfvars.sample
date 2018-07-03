@@ -19,6 +19,8 @@ location = "southcentralus"
 
 images_resource_group = "vmimageresourcegroupname"
 
+images_storage_account = "vmimagestorageaccount"
+
 base_os_image = "rhel7base"
 
 ocp_cidr_block = "10.0.0.0/23"
