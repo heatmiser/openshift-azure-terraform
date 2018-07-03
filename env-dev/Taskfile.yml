@@ -144,3 +144,8 @@ tasks:
     desc: update crsapp and crsregistry modules with bootstrap generated main.tf terraform scripts
     cmds:
       - invoke crsterraformupdate
+
+  azvmimageupload:
+    desc: upload vm image to Azure
+    cmds:
+      - invoke vmimageupload

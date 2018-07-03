@@ -343,6 +343,31 @@ def sshgenkeypair(ctx):
     return basekeyname
 
 @task
+def vmimageupload(ctx):
+    """upload VM image to Azure"""
+    baseprojectdir, envdir = os.path.split(os.getcwd())
+    packerdir = baseprojectdir+'/packer-rhel7'
+    packermanifest = packerdir+'/manifest.json'
+    with open(packermanifest, 'r') as handle:
+        packerjson = json.load(handle)
+    handle.close()
+    buildlist = packerjson['builds']
+    imagelist = []
+    for i in range(len(buildlist)):
+        for j in (buildlist[i]['files']):
+            print("%-3s %-50s" % (i, j['name']))
+            imagelist.append(j['name'])
+    imageint = ''
+    while imageint not in (range(len(imagelist))):
+        imageindex = input("Please select desired VM image# 0-%s  > " % (len(imagelist) - 1))
+        try:
+            imageint = int(imageindex)
+        except ValueError:
+            imageindex  = ''
+    print("%s" % (imagelist[imageint]))
+    return imagelist[imageint]
+
+@task
 def createresourcegroup(ctx):
     """create Azure resource group"""
     while True:
