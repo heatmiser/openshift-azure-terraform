@@ -365,8 +365,8 @@ def vmimageupload(ctx):
             imageint = int(imageindex)
         except ValueError:
             imageindex  = ''
-    print("%s" % (imagelist[imageint]))
-    return 
+    print("%s" % (packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]))
+    return packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
 
 @task
 def createresourcegroup(ctx):
