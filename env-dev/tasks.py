@@ -356,7 +356,7 @@ def vmimageupload(ctx):
     imagelist = []
     for i in range(len(buildlist)):
         for j in (buildlist[i]['files']):
-            print("%-3s %-50s" % (i, j['name']))
+            print("%-3s %-50s" % (i, os.path.splitext(j['name'])[0]+'.vhd'))
             imagelist.append(os.path.splitext(j['name'])[0]+'.vhd')
     imageint = ''
     while imageint not in (range(len(imagelist))):
