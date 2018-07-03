@@ -110,6 +110,13 @@ class Spinner(object):
             time.sleep(0.25)
             sys.stdout.write('\b')
 
+def getVarFromFile(filename):
+    import imp
+    f = open(filename)
+    global data
+    data = imp.load_source('data', '', f)
+    f.close()
+
 def azurelogout():
     azlogout = run('az logout', hide=True, warn=True)
     azlogoutstdout = StringIO(azlogout.stdout.strip())
@@ -281,7 +288,8 @@ def envinit(ctx):
                 'ocpresourcegroupname',
                 'southcentralus',
                 'projectname',
-                'vmimageresourcegroupname']
+                'vmimageresourcegroupname',
+                'vmimagestorageaccount']
         provided = [aad_client_id,
                     aad_client_secret,
                     tenant_id,
@@ -289,7 +297,8 @@ def envinit(ctx):
                     rg2use,
                     loc2use,
                     azprojectname,
-                    vmrg]
+                    vmrg,
+                    stac4vm]
         subdict = dict(zip(sublocs, provided))
         findnreplace(baseprojectdir+'/'+envdir+'/01base.tfvars', subdict)
         print('')
@@ -365,7 +374,22 @@ def vmimageupload(ctx):
             imageint = int(imageindex)
         except ValueError:
             imageindex  = ''
-    print("%s" % (packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]))
+    vmimage = packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
+    vmimagename = 'imagename.vhd'
+    vmimageshortname = 'imagename'
+    print("%s" % (vmimage))
+    getVarFromFile('01base.tfvars')
+    azimgrg = data.images_resource_group
+    azimgstac = data.images_storage_account
+    spinner = Spinner()
+    spinner.start()
+    stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (azimgrg, azimgstac), hide=True, warn=True)
+    spinner.stop()
+    stackeyio = StringIO(stackeycmd.stdout)
+    stackeyjson = json.load(stackeyio)[0]
+    stackey2use = stackeyjson['value']
+    vmimgupload = run(('az storage blob upload --account-name %s --account-key %s --container-name images --type page --file %s --name %s') % (azimgstac, stackey2use, vmimage, vmimagename), hide=True, warn=True)
+    vmimgcreate = run(('az image create --resource-group %s -n %s --os-type Linux --source https://%s.blob.core.windows.net/images/%s') % (azimgrg, vmimageshortname, azimgstac, vmimagename), hide=True, warn=True)
     return packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
 
 @task
