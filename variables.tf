@@ -14,6 +14,7 @@ variable "ocp_cidrsubnet_newbits" {}
 variable "crs_cidr_block" {}
 variable "crs_cidrsubnet_newbits" {}
 variable "images_resource_group" {}
+variable "images_storage_account" {}
 variable "base_os_image" {}
 variable "network1_module_name" {}
 variable "network2_module_name" {}
