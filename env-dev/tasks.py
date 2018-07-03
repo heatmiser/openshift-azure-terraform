@@ -345,6 +345,7 @@ def sshgenkeypair(ctx):
 @task
 def vmimageupload(ctx):
     """upload VM image to Azure"""
+    print('Upload one of the following VM images to Azure:')
     baseprojectdir, envdir = os.path.split(os.getcwd())
     packerdir = baseprojectdir+'/packer-rhel7'
     packermanifest = packerdir+'/manifest.json'
@@ -356,7 +357,7 @@ def vmimageupload(ctx):
     for i in range(len(buildlist)):
         for j in (buildlist[i]['files']):
             print("%-3s %-50s" % (i, j['name']))
-            imagelist.append(j['name'])
+            imagelist.append(os.path.splitext(j['name'])[0]+'.vhd')
     imageint = ''
     while imageint not in (range(len(imagelist))):
         imageindex = input("Please select desired VM image# 0-%s  > " % (len(imagelist) - 1))
@@ -365,7 +366,7 @@ def vmimageupload(ctx):
         except ValueError:
             imageindex  = ''
     print("%s" % (imagelist[imageint]))
-    return imagelist[imageint]
+    return 
 
 @task
 def createresourcegroup(ctx):
