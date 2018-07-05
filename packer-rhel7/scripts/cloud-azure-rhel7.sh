@@ -1,3 +1,6 @@
+USERNAME_ORG=$1
+PASSWORD_ACT_KEY=$2
+
 # Configure serial console
 yum -y install grub2-tools
 
@@ -19,6 +22,43 @@ yum -y install grub2-tools
 #EOF
 
 #grub2-mkconfig -o /boot/grub2/grub.cfg
+
+# Register Red Hat Subscription
+subscription-manager register --username="$USERNAME_ORG" --password="$PASSWORD_ACT_KEY" --auto-attach --force || subscription-manager register --activationkey="$PASSWORD_ACT_KEY" --org="$USERNAME_ORG"
+subscription-manager repos --disable="*"
+subscription-manager repos --enable="rhel-7-server-rpms"
+# Install latest repo update
+yum update -y
+
+# Enable extras repo
+subscription-manager repos --enable="rhel-7-server-extras-rpms"
+
+# Install WALinuxAgent
+yum install -y WALinuxAgent
+systemctl enable waagent.service
+
+# Unregister Red Hat subscription
+#subscription-manager unregister
+# this has to be moved to final packer script, otherwise won't run be able to update
+
+# Enable waaagent at boot-up
+systemctl enable waagent
+
+# Disable the root account
+# usermod root -p '!!'
+
+# Configure swap in WALinuxAgent
+sed -i 's/^\(ResourceDisk\.EnableSwap\)=[Nn]$/\1=y/g' /etc/waagent.conf
+sed -i 's/^\(ResourceDisk\.SwapSizeMB\)=[0-9]*$/\1=2048/g' /etc/waagent.conf
+
+# Set the cmdline
+sed -i 's/^\(GRUB_CMDLINE_LINUX\)=".*"$/\1="console=tty1 console=ttyS0,115200n8 earlyprintk=ttyS0,115200 rootdelay=300 net.ifnames=0"/g' /etc/default/grub
+sed -i 's/ rhgb//g' /etc/default/grub
+sed -i 's/ quiet//g' /etc/default/grub
+sed -i 's/ crashkernel=auto//g' /etc/default/grub
+
+# Build the grub cfg
+grub2-mkconfig -o /boot/grub2/grub.cfg
 
 # make Hyper-V device drivers available
 cat >> /etc/dracut.conf <<EOF
