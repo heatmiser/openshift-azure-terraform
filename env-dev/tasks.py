@@ -110,11 +110,10 @@ class Spinner(object):
             time.sleep(0.25)
             sys.stdout.write('\b')
 
-def getVarFromFile(filename):
+def getVarFromFile(filename, dataname):
     import imp
     f = open(filename)
-    global data
-    data = imp.load_source('data', '', f)
+    globals()[dataname] = imp.load_source(dataname, '', f)
     f.close()
 
 def azurelogout():
@@ -375,12 +374,12 @@ def vmimageupload(ctx):
         except ValueError:
             imageindex  = ''
     vmimage = packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
-    vmimagename = 'imagename.vhd'
-    vmimageshortname = 'imagename'
+    vmimagename = imagelist[imageint]
     print("%s" % (vmimage))
-    getVarFromFile('01base.tfvars')
-    azimgrg = data.images_resource_group
-    azimgstac = data.images_storage_account
+    getVarFromFile('01base.tfvars', 'baseconfig')
+    vmimageshortname = baseconfig.base_os_image
+    azimgrg = baseconfig.images_resource_group
+    azimgstac = baseconfig.images_storage_account
     spinner = Spinner()
     spinner.start()
     stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (azimgrg, azimgstac), hide=True, warn=True)
@@ -388,7 +387,16 @@ def vmimageupload(ctx):
     stackeyio = StringIO(stackeycmd.stdout)
     stackeyjson = json.load(stackeyio)[0]
     stackey2use = stackeyjson['value']
-    vmimgupload = run(('az storage blob upload --account-name %s --account-key %s --container-name images --type page --file %s --name %s') % (azimgstac, stackey2use, vmimage, vmimagename), hide=True, warn=True)
+    vmimguploadcmd = 'az storage blob upload --account-name %s --account-key %s --container-name images --type page --file %s --name %s' % (azimgstac, stackey2use, vmimage, vmimagename)
+    vmimguploadproc = subprocess.Popen(vmimguploadcmd, shell=True, stderr=subprocess.PIPE)
+    while True:
+        time.sleep(5)
+        out = vmimguploadproc.stderr.read(255).decode('utf-8')
+        if out == '' and vmimguploadproc.poll() != None:
+            break
+        if out != '':
+            print(out, end='\r', flush=True)
+    #vmimgupload = run(('az storage blob upload --account-name %s --account-key %s --container-name images --type page --file %s --name %s') % (azimgstac, stackey2use, vmimage, vmimagename), hide=True, warn=True)
     vmimgcreate = run(('az image create --resource-group %s -n %s --os-type Linux --source https://%s.blob.core.windows.net/images/%s') % (azimgrg, vmimageshortname, azimgstac, vmimagename), hide=True, warn=True)
     return packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
 
@@ -498,7 +506,7 @@ def createstorageaccount(ctx, resourcegroup='', location='', stacname=''):
                 continue
         spinner = Spinner()
         spinner.start()
-        azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS --kind StorageV2') % (loc2use, stacname, rg2use), hide=True, warn=True)
+        azstaccreate = run(('az storage account create --location \'%s\' --name %s --resource-group %s --sku Standard_LRS --kind StorageV2 --access-tier Cool') % (loc2use, stacname, rg2use), hide=True, warn=True)
         spinner.stop()
         azstaccreateio = StringIO(azstaccreate.stdout)
         azstaccreatejson = json.load(azstaccreateio)
