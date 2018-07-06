@@ -1,7 +1,9 @@
 #!/bin/bash
 
 if command -v packer 2>/dev/null; then
-    export PACKER=$(command -v packer)
+    testpacker="$(packer --help 2>&1 | grep dbname)"
+    if [ $testpacker == "" ]; then
+        export PACKER=$(command -v packer)
 elif command -v ./packer 2>/dev/null; then
     export PACKER=$(command -v ./packer)
 else
