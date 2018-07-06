@@ -4,13 +4,14 @@
     "buildtime": "{{isotime \"2006-01-02-030405\"}}",
     "username": "{{env `USER`}}",
     "rhn_username_org": "",
-    "rhn_password_act_key": ""
+    "rhn_password_act_key": "",
+    "rhn_pool_id": ""
   },
   "provisioners": [{
     "type": "shell",
     "scripts": [
       "scripts/base-rhel.sh",
-      "scripts/cloud-azure-rhel7.sh",
+      "scripts/cloud-azure-rhel7.sh {{ user `rhn_username_org` }} {{ user `rhn_password_act_key` }} {{ user `rhn_pool_id` }}",
       "scripts/rhnunregister.sh",
       "scripts/cleanup.sh",
       "scripts/waagent.sh",
@@ -69,7 +70,7 @@
       "net_device": "virtio-net",
       "disk_interface": "virtio",
       "boot_command": [
-        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg USERNAME_ORG={{ user `rhn_username_org` }} PASSWORD_ACT_KEY={{ user `rhn_password_act_key` }}<enter><wait>"
+        "<tab> append initrd=initrd.img inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7-cloud-azure-ks.cfg<enter><wait>"
       ]
     },{
       "name": "rhel-7-cloud-ci-azure",
