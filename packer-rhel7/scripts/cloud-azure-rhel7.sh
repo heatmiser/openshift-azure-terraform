@@ -1,7 +1,3 @@
-USERNAME_ORG=$1
-PASSWORD_ACT_KEY=$2
-POOL_ID=$3
-
 # Configure serial console
 yum -y install grub2-tools
 
@@ -25,7 +21,7 @@ yum -y install grub2-tools
 #grub2-mkconfig -o /boot/grub2/grub.cfg
 
 # Register Red Hat Subscription
-subscription-manager register --username="$USERNAME_ORG" --password="$PASSWORD_ACT_KEY" && subscription-manager attach --pool="$POOL_ID" || subscription-manager register --activationkey="$PASSWORD_ACT_KEY" --org="$USERNAME_ORG"
+subscription-manager register --username="$rhn_username_org" --password="$rhn_password_act_key" && subscription-manager attach --pool="$rhn_pool_id" || subscription-manager register --activationkey="$rhn_password_act_key" --org="$rhn_username_org"
 subscription-manager repos --disable="*"
 subscription-manager repos --enable="rhel-7-server-rpms"
 # Install latest repo update
