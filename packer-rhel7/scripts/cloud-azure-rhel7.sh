@@ -20,13 +20,6 @@ yum -y install grub2-tools
 
 #grub2-mkconfig -o /boot/grub2/grub.cfg
 
-# Register Red Hat Subscription
-subscription-manager register --username="$rhn_username_org" --password="$rhn_password_act_key" && subscription-manager attach --pool="$rhn_pool_id" || subscription-manager register --activationkey="$rhn_password_act_key" --org="$rhn_username_org"
-subscription-manager repos --disable="*"
-subscription-manager repos --enable="rhel-7-server-rpms"
-# Install latest repo update
-yum update -y
-
 # Enable extras repo
 subscription-manager repos --enable="rhel-7-server-extras-rpms"
 

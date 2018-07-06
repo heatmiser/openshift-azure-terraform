@@ -1,3 +1,9 @@
+# Register Red Hat Subscription
+subscription-manager register --username="$rhn_username_org" --password="$rhn_password_act_key" && subscription-manager attach --pool="$rhn_pool_id" || subscription-manager register --activationkey="$rhn_password_act_key" --org="$rhn_username_org"
+subscription-manager repos --disable="*"
+subscription-manager repos --enable="rhel-7-server-rpms"
+# Install latest repo update
+yum update -y
 yum -y update
 yum -y install wget curl
 
