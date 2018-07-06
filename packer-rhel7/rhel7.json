@@ -8,6 +8,11 @@
     "rhn_pool_id": ""
   },
   "provisioners": [{
+    "environment_vars": [
+      "rhn_username_org={{user `rhn_username_org`}}",
+      "rhn_password_act_key={{user `rhn_password_act_key`}}",
+      "rhn_pool_id={{user `rhn_pool_id`}}"
+    ],
     "type": "shell",
     "scripts": [
       "scripts/base-rhel.sh",
@@ -18,11 +23,7 @@
       "scripts/zerodisk.sh",
       "scripts/nosshpasswords.sh"
     ],
-    "override": {
-      "rhel-7-cloud-azure": {
-        "execute_command": "{{.Vars}} bash '{{.Path}}'"
-      }
-    },
+    "execute_command": "{{.Vars}} bash '{{.Path}}'",
     "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
   }, {
     "type": "shell",
