@@ -3,9 +3,9 @@
     "version": "1.0",
     "buildtime": "{{isotime \"2006-01-02-030405\"}}",
     "username": "{{env `USER`}}",
-    "rhn_username_org": "",
-    "rhn_password_act_key": "",
-    "rhn_pool_id": ""
+    "rhn_username_org": "{{env `rhn_username_org`}}",
+    "rhn_password_act_key": "{{env `rhn_password_act_key`}}",
+    "rhn_pool_id": "{{env `rhn_pool_id`}}"
   },
   "provisioners": [{
     "environment_vars": [
