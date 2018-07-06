@@ -30,16 +30,16 @@ rhn_pool_id="$(grep rhn_poolid ../env-dev/03rhn.tfvars | awk '{print $3}' | tr -
 
 echo "Executing:"
 echo ""
-echo "'$PACKER' build \\"
-echo "    -var \"rhn_username_org='$rhn_username_org'\" \\"
-echo "    -var \"rhn_password_act_key='$rhn_password_act_key'\" \\"
-echo "    -var \"rhn_pool_id='$rhn_pool_id'\" \\"
+echo "$PACKER build \\"
+echo "    -var 'rhn_username_org=$rhn_username_org' \\"
+echo "    -var 'rhn_password_act_key=$rhn_password_act_key' \\"
+echo "    -var 'rhn_pool_id=$rhn_pool_id' \\"
 echo "    -only=rhel-7-cloud-azure \\"
 echo "    rhel7.json"
 
 "$PACKER" build \
-    -var "rhn_username_org='$rhn_username_org'" \
-    -var "rhn_password_act_key='$rhn_password_act_key'" \
-    -var "rhn_pool_id='$rhn_pool_id'" \
+    -var \'rhn_username_org=$rhn_username_org\' \
+    -var \'rhn_password_act_key=$rhn_password_act_key\' \
+    -var \'rhn_pool_id=$rhn_pool_id\' \
     -only=rhel-7-cloud-azure \
     rhel7.json
