@@ -20,7 +20,7 @@
     ],
     "override": {
       "rhel-7-cloud-azure": {
-        "execute_command": "sh '{{.Path}}'"
+        "execute_command": "{{.Vars}} bash '{{.Path}}'"
       }
     },
     "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
