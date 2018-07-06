@@ -11,7 +11,7 @@
     "type": "shell",
     "scripts": [
       "scripts/base-rhel.sh",
-      "scripts/cloud-azure-rhel7.sh {{ user `rhn_username_org` }} {{ user `rhn_password_act_key` }} {{ user `rhn_pool_id` }}",
+      "scripts/cloud-azure-rhel7.sh",
       "scripts/rhnunregister.sh",
       "scripts/cleanup.sh",
       "scripts/waagent.sh",
