@@ -48,3 +48,4 @@ modules/openvpn/variables.tf
 **/azcreds.json
 packer-rhel7/rhel-7-*
 packer-rhel7/packer
+bin/
