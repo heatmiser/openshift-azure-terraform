@@ -87,6 +87,8 @@ export ARM_CLIENT_ID=$aad_client_id
 export ARM_CLIENT_SECRET="$aad_client_secret"
 export ARM_TENANT_ID=$tenant_id
 
+# -----------------------------------------------------------
+(
 cat <<'EOPS1'
 echo "Setting project environment variables..."
 export PATH="$bindir":$PATH
