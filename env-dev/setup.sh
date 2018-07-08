@@ -5,7 +5,6 @@ projectdir="$(dirname "$envdir")"
 projectname="$(basename "$projectdir")"
 bindir="$projectdir/bin"
 
-
 if [ ! -d "$bindir" ]; then
     echo "$projectname/bin does not exist, creating..."
     mkdir "$bindir"
@@ -13,7 +12,7 @@ fi
 
 cd "$bindir"
 
-echo "Checking for necessary tools, configuring if necessary...
+echo "Checking for necessary tools, configuring if necessary..."
 
 if [[ ! -f "$bindir/task" ]]; then
     echo "'task' not found, configuring..."
@@ -37,7 +36,7 @@ if [[ ! -f "$bindir/terraform" ]]; then
     rm terraform_0.11.7_linux_amd64.zip
 fi
 
-if [[ ! -f "${$bindir/packer" ]]; then                                        
+if [[ ! -f "$bindir/packer" ]]; then                                        
     echo "'packer' not found, configuring..."                                  
     wget https://releases.hashicorp.com/packer/1.2.4/packer_1.2.4_linux_amd64.zip
     unzip packer_1.2.4_linux_amd64.zip
