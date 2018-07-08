@@ -10,7 +10,7 @@ if [ ! -d "$bindir" ]; then
     mkdir "$bindir"
 fi
 
-cd "$bindir"
+cd "$bindir" || exit
 
 echo "Checking for necessary tools, configuring if necessary..."
 
@@ -46,7 +46,8 @@ fi
 
 if command -v jq 2>/dev/null; then
     if command -v ./jq 2>/dev/null; then
-    echo "jq not found, configuring..."
+        echo "jq not found, configuring..."
+    fi
     wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
     ln -s jq-linux64 jq
 fi
@@ -61,7 +62,7 @@ if command -v qemu-system-x86_64 2>/dev/null; then
     echo "and logout and log back in..."
 fi
 
-cd "$envdir"
+cd "$envdir" || exit
 export PATH="$bindir":$PATH
 
 if command -v az 2>/dev/null; then
