@@ -72,6 +72,8 @@ cd "$envdir" || exit
 export PATH="$bindir":$PATH
 
 if command -v az 2>/dev/null; then
+    echo "Azure CLI found, continuing..."
+else
     echo "Azure CLI not found, please install and re-run setup.sh"
 fi
 
