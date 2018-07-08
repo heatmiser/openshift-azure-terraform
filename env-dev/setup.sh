@@ -20,7 +20,7 @@ if [[ ! -f "$bindir/task" ]]; then
     wget https://github.com/go-task/task/releases/download/v2.0.3/task_linux_amd64.tar.gz
     wget https://github.com/go-task/task/releases/download/v2.0.3/task_linux_386.tar.gz
     tar xzvf task_linux_amd64.tar.gz task && mv task task64
-    tar xzvf task_linux_386.tar.gz && mv task task32
+    tar xzvf task_linux_386.tar.gz task && mv task task32
     rm task_linux_amd64.tar.gz task_linux_386.tar.gz
     if [[ ! -f "/lib64/ld-linux-x86-64.so.2" ]]; then
         ln -s task32 task
