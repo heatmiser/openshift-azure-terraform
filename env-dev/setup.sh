@@ -98,7 +98,7 @@ export ARM_TENANT_ID=$tenant_id
 
 # -----------------------------------------------------------
 (
-cat <<'EOPS1'
+cat <<EOPS1
 echo "Setting project environment variables..."
 export PATH="$bindir":$PATH
 # Azure
