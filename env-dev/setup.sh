@@ -45,19 +45,25 @@ fi
 
 
 if command -v jq 2>/dev/null; then
-    if command -v ./jq 2>/dev/null; then
-        echo "jq not found, configuring..."
-    fi
+    echo "jq present, continuing..."
+elif command -v ./jq 2>/dev/null; then
+    echo "jq present, continuing..."
+else
+    echo "jq not found, configuring..."
     wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
     ln -s jq-linux64 jq
 fi
 
 if command -v qemu-img 2>/dev/null; then
-    echo "qemu-img not found, please install"       
+    echo "qemu-img present, continuing..."
+else
+    echo "!!!! qemu-img not found, please install !!!!"
 fi
 
 if command -v qemu-system-x86_64 2>/dev/null; then
-    echo "qemu-system-x86_64 not found, please install"
+    echo "qemu-system-x86_64 present, continuing..."
+else
+    echo "!!!! qemu-system-x86_64 not found, please install !!!!"
     echo "then, add current user as member of libvirt(RHEL) or kvm(Ubuntu) group"
     echo "and logout and log back in..."
 fi
