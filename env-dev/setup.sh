@@ -30,7 +30,7 @@ if [[ ! -f "$bindir/task" ]]; then
     fi
 fi
 
-if [[ ! -f "$bindir/terraform" ]]; then                                             
+if [[ ! -f "$bindir/terraform" ]]; then
     echo "'terraform' not found, configuring..."
     wget https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
     unzip terraform_0.11.7_linux_amd64.zip
@@ -52,12 +52,12 @@ if command -v jq 2>/dev/null; then
     ln -s jq-linux64 jq
 fi
 
-if command -v qemu-img 2>/dev/null; then                                              
+if command -v qemu-img 2>/dev/null; then
     echo "qemu-img not found, please install"       
 fi
 
-if command -v qemu-system-x86_64 2>/dev/null; then                                        
-    echo "qemu-system-x86_64 not found, please install"                                   
+if command -v qemu-system-x86_64 2>/dev/null; then
+    echo "qemu-system-x86_64 not found, please install"
     echo "then, add current user as member of libvirt(RHEL) or kvm(Ubuntu) group"
     echo "and logout and log back in..."
 fi
@@ -100,5 +100,3 @@ export ARM_TENANT_ID=$tenant_id
 EOPS1
 ) > project.env
 cat Taskcompletion.env >> project.env
-
-fi
