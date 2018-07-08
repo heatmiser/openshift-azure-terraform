@@ -35,11 +35,7 @@
       "scripts/zerodisk.sh",
       "scripts/nosshpasswords.sh"
     ],
-    "override": {
-      "rhel-7-cloud-kvm": {
-        "execute_command": "sh '{{.Path}}'"
-      }
-    },
+    "execute_command": "{{.Vars}} bash '{{.Path}}'",
     "only": ["rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
   }],
   "builders": [{
