@@ -16,7 +16,6 @@ fi
 if [ "$PACKER" == "" ]; then
     echo "packer not found, exiting..."
     exit 1
-    fi
 fi
 echo "Using packer: '$PACKER'"
 rhn_username_org="$(grep rhn_user ../env-dev/03rhn.tfvars | awk '{print $3}' | tr -d '"')"
