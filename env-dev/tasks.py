@@ -242,7 +242,7 @@ def envinit(ctx):
                 w.close()
             for i in reversed(range(len(realtfvars))):
                 #os.symlink('../'+realtfvars[i], realtfvars[i])
-                symlinkcmd = ('ln -sf ../+%s . ' % (realtfvars[i]))
+                symlinkcmd = ('ln -sf ../%s . ' % (realtfvars[i]))
                 symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
             if str(tierlist[tier]) != 'bootstrap':
                 print('')
