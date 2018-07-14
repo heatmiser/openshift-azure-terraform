@@ -237,7 +237,7 @@ def envinit(ctx):
             print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
             os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
             # 00beconf2.tfvars unique in each env tier component directory
-            with open("00beconf2.tfvars", "a") as w:
+            with open("00beconf2.tfvars", "w+") as w:
                 w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
                 w.close()
             for i in reversed(range(len(realtfvars))):
