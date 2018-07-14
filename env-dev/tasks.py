@@ -241,7 +241,9 @@ def envinit(ctx):
                 w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
                 w.close()
             for i in reversed(range(len(realtfvars))):
-                os.symlink('../'+realtfvars[i], realtfvars[i])
+                #os.symlink('../'+realtfvars[i], realtfvars[i])
+                symlinkcmd = ('ln -sf ../+%s . ' % (realtfvars[i]))
+                symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
             if str(tierlist[tier]) != 'bootstrap':
                 print('')
                 print('Creating symlink in %s to root variables.tf...' % (tierlist[tier]))
