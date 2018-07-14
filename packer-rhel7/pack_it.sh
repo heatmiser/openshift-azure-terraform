@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #DEBUG="-debug"
+#PACKER_LOG="env PACKER_LOG=1"
 
 if command -v packer 2>/dev/null; then
     testpacker="$(packer --help 2>&1 | grep dbname)"
@@ -35,6 +36,6 @@ echo "    rhel7.json"
 rhn_username_org="$rhn_username_org" \
 rhn_password_act_key="$rhn_password_act_key" \
 rhn_pool_id="$rhn_pool_id" \
-"$PACKER" build $DEBUG \
+$PACKER_LOG "$PACKER" build $DEBUG \
     -only=rhel-7-cloud-azure \
     rhel7.json
