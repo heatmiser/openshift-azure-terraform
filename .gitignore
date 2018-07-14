@@ -49,3 +49,6 @@ modules/openvpn/variables.tf
 packer-rhel7/rhel-7-*
 packer-rhel7/packer
 bin/
+**/project.env
+**/bootstrap/output/*
+
