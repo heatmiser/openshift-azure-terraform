@@ -38,6 +38,7 @@ modules/network-crs/variables.tf
 modules/network/variables.tf
 modules/node/variables.tf
 modules/openvpn/variables.tf
+**/azurecreds.tf
 
 # misc
 **/.task/*
