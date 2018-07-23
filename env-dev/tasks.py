@@ -161,6 +161,18 @@ def azureloggedin():
         print(azstatus.stderr.strip())
         return False
 
+def azuretfcreds(aad_client_id, aad_client_secret, tenant_id, subscription_id):
+    aztfcredsfile = 'azurecreds.tf'
+    with open(aztfcredsfile, "w") as w:
+        w.write("""\
+provider "azurerm" {
+    subscription_id = "%s"
+    client_id       = "%s"
+    client_secret   = "%s"
+    tenant_id       = "%s"
+}""" % (subscription_id, aad_client_id, aad_client_secret, tenant_id))
+    w.close()
+
 def clear():
     _ = os.system('clear')
 
@@ -170,6 +182,9 @@ def envinit(ctx):
     azurelogout()
     print('Logging into Azure using credentials provided via azcreds.json...')
     aad_client_id, aad_client_secret, tenant_id, subscription_id = azurelogin()
+    print('')
+    print('Create env base azurecreds.tf file...')
+    azuretfcreds(aad_client_id, aad_client_secret, tenant_id, subscription_id)
     print('')
     print('Create new or enter existing resource group for OpenShift deployment...')
     rg2use, loc2use = createresourcegroup(ctx)
@@ -236,6 +251,9 @@ def envinit(ctx):
         for tier in range(len(tierlist)):
             print('Creating tfvars symlinks in %s...' % (tierlist[tier]))
             os.chdir(baseprojectdir+'/'+envdir+'/'+tierlist[tier])
+            # symlink to env base azurecreds.tf
+            symlinkcmd = ('ln -sf ../azurecreds.tf . ')
+            symlinkcmdraw = run(symlinkcmd, hide=True, warn=True)
             # 00beconf2.tfvars unique in each env tier component directory
             with open("00beconf2.tfvars", "w+") as w:
                 w.write("container_name =\"%s-%s\"" % (azprojectname, tierlist[tier]))
