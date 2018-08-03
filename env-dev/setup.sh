@@ -64,8 +64,8 @@ if command -v qemu-system-x86_64 2>/dev/null; then
     echo "qemu-system-x86_64 present, continuing..."
 else
     echo "!!!! qemu-system-x86_64 not found, please install !!!!"
-    echo "then, add current user as member of libvirt(RHEL) or kvm(Ubuntu) group"
-    echo "and logout and log back in..."
+    echo "...then, add current user as member of libvirt group(RHEL/Fedora) or"
+    echo "kvm group(Ubuntu/Debian), then logout and log back in to continue..."
 fi
 
 cd "$envdir" || exit
@@ -75,6 +75,13 @@ if command -v az 2>/dev/null; then
     echo "Azure CLI found, continuing..."
 else
     echo "Azure CLI not found, please install and re-run setup.sh"
+fi
+
+if [[ ! -f "azcreds.json" ]]; then
+    echo "Azure credentials file azcreds.json not found, please copy"
+    echo "azcreds.json.sample to azcreds.json, then edit azcreds.json, supplying"
+    echo "the proper Azure authentication credentials, and re-run setup.sh"
+    exit 1                                                                      
 fi
 
 aad_client_id=$(cat azcreds.json | jq '.aad_client_id' | tr -d '"')
