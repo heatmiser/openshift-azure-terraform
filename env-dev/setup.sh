@@ -87,6 +87,8 @@ azureloginresult=$(echo $azurelogin | jq '.[0].state' | tr -d '"')
 if [ "$azureloginresult" != "Enabled" ]; then
     echo "Azure credentials in azcreds.json are incorrect, please adjust and re-run setup.sh"
     exit 1
+else
+    echo "Azure credentials in azcreds.json verified, creating project.env for future env sourcing..."
 fi
 
 subscription_id=$(echo $azurelogin | jq '.[0].id' | tr -d '"')
