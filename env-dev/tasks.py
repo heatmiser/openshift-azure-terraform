@@ -432,6 +432,7 @@ def vmimagelink(ctx):
     stackeyio = StringIO(stackeycmd.stdout)
     stackeyjson = json.load(stackeyio)[0]
     stackey2use = stackeyjson['value']
+    spinner = Spinner()
     spinner.start()
     vhdlistcmd = run(('az storage blob list --account-name %s --account-key %s --container-name images') % (azimgstac, stackey2use), hide=True, warn=True)
     spinner.stop()
@@ -461,6 +462,7 @@ def vmimagelink(ctx):
             print('Try again')
             continue
     print("Now linking %s to vmimage name %s..." % (vmimagename, vmimageshortname))
+    spinner = Spinner()
     spinner.start()
     vmimglink = run(('az image create --resource-group %s -n %s --os-type Linux --source https://%s.blob.core.windows.net/images/%s') % (azimgrg, vmimageshortname, azimgstac, vmimagename), hide=True, warn=True)
     spinner.stop()
