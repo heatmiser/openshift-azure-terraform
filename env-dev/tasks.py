@@ -416,9 +416,61 @@ def vmimageupload(ctx):
             break
         if out != '':
             print(out, end='\r', flush=True)
-    #vmimgupload = run(('az storage blob upload --account-name %s --account-key %s --container-name images --type page --file %s --name %s') % (azimgstac, stackey2use, vmimage, vmimagename), hide=True, warn=True)
-    vmimgcreate = run(('az image create --resource-group %s -n %s --os-type Linux --source https://%s.blob.core.windows.net/images/%s') % (azimgrg, vmimageshortname, azimgstac, vmimagename), hide=True, warn=True)
-    return packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
+
+@task
+def vmimagelink(ctx):
+    """link vm image name to vm image VHD"""
+    print('Link VM image name to one of the following VM image VHDs in Azure:')
+    getVarFromFile('01base.tfvars', 'baseconfig')
+    vmimageshortname = baseconfig.base_os_image
+    azimgrg = baseconfig.images_resource_group
+    azimgstac = baseconfig.images_storage_account
+    spinner = Spinner()
+    spinner.start()
+    stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (azimgrg, azimgstac), hide=True, warn=True)
+    spinner.stop()
+    stackeyio = StringIO(stackeycmd.stdout)
+    stackeyjson = json.load(stackeyio)[0]
+    stackey2use = stackeyjson['value']
+    spinner.start()
+    vhdlistcmd = run(('az storage blob list --account-name %s --account-key %s --container-name images') % (azimgstac, stackey2use), hide=True, warn=True)
+    spinner.stop()
+    vhdlistio = StringIO(vhdlistcmd.stdout)
+    vhdliststring = vhdlistio.getvalue()
+    vhdlistjson = json.loads(vhdliststring)
+    imagelist = []
+    print("Available VM image VHDs\n")
+    print("%-3s %-50s" % ("ID", "Name"))
+    print("%-3s %-50s" % ("--", "---------------------------------------------"))
+    for i in range(len(vhdlistjson)):
+        print("%-3s %-50s" % (i, vhdlistjson[i]['name']))
+        imagelist.append(vhdlistjson[i]['name'])
+    while True:
+        imageint = ''
+        while imageint not in (range(len(imagelist))):
+            imageindex = input("Please select desired VM image VHD ID# 0-%s  > " % (len(imagelist) - 1))
+            try:
+                imageint = int(imageindex)
+            except ValueError:
+                imageindex  = ''
+        vmimagename = imagelist[imageint]
+        ansrStr = str(confirm(prompt='You entered "'+vmimagename+'" as the desired VM image VHD. Is this correct?'))
+        if ansrStr == 'True':
+            break
+        else:
+            print('Try again')
+            continue
+    print("Now linking %s to vmimage name %s..." % (vmimagename, vmimageshortname))
+    spinner.start()
+    vmimglink = run(('az image create --resource-group %s -n %s --os-type Linux --source https://%s.blob.core.windows.net/images/%s') % (azimgrg, vmimageshortname, azimgstac, vmimagename), hide=True, warn=True)
+    spinner.stop()
+    vmimglinkio = StringIO(vmimglink.stdout)
+    vmimglinkstring = vmimglinkio.getvalue()
+    vmimglinkjson = json.loads(vmimglinkstring)
+    if vmimglinkjson['provisioningState'] == 'Succeeded':
+        print("VM image VHD %s configured as vmimage name %s..." % (vmimagename, vmimageshortname))
+    else:
+        print('An error as occurred, please retry link operation.')
 
 @task
 def createresourcegroup(ctx):

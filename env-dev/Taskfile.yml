@@ -149,3 +149,8 @@ tasks:
     desc: upload vm image to Azure
     cmds:
       - invoke vmimageupload
+
+  azvmimagelink:
+    desc: link vm image name to vm image VHD
+    cmds:
+      - invoke vmimagelink
