@@ -501,6 +501,16 @@ def vmimagecreate(ctx):
         print('An error as occurred, please retry link operation.')
 
 @task
+def vmlistskus(ctx):
+    """list available vm skus (instance sizes)"""
+    getVarFromFile('01base.tfvars', 'baseconfig')
+    azloc = baseconfig.location
+    vmskulistcmd = run(('az vm list-skus -l %s --output table | grep -v NotAvailableForSubscription | grep -v Name | grep -v \\-\\-\\- | grep -v Classic | grep -v Aligned | grep -v Standard_LRS | grep -v Premium_LRS | grep -v StandardSSD_LRS | grep -v Standard_LRS | grep -v Premium_LRS | awk \'{print $3":",$6,$7}\' | tr -d \',\'') % (azloc), hide=True, warn=True)
+    vmskulistio = StringIO(vmskulistcmd.stdout)
+    imageliststring = imagelistio.getvalue()
+    print(imageliststring)
+
+@task
 def createresourcegroup(ctx):
     """create Azure resource group"""
     while True:

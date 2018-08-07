@@ -154,3 +154,8 @@ tasks:
     desc: create vm image from vm vhd
     cmds:
       - invoke vmimagecreate
+
+  azvmlistskus:
+    desc: list available vm skus (instance sizes)
+    cmds:
+      - invoke vmlistskus
