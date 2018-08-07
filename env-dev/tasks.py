@@ -371,7 +371,7 @@ def sshgenkeypair(ctx):
     return basekeyname
 
 @task
-def vmimageupload(ctx):
+def vmvhdupload(ctx):
     """upload VM image to Azure"""
     print('Upload one of the following VM images to Azure:')
     baseprojectdir, envdir = os.path.split(os.getcwd())
@@ -418,9 +418,9 @@ def vmimageupload(ctx):
             print(out, end='\r', flush=True)
 
 @task
-def vmimagelink(ctx):
-    """link vm image name to vm image VHD"""
-    print('Link VM image name to one of the following VM image VHDs in Azure:')
+def vmimagecreate(ctx):
+    """create vm image from vm vhd"""
+    print('Create VM image from one of the following VM VHDs in Azure:')
     getVarFromFile('01base.tfvars', 'baseconfig')
     vmimageshortname = baseconfig.base_os_image
     azimgrg = baseconfig.images_resource_group

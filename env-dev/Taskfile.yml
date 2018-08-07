@@ -145,12 +145,12 @@ tasks:
     cmds:
       - invoke crsterraformupdate
 
-  azvmimageupload:
-    desc: upload vm image to Azure
+  azvmvhdupload:
+    desc: upload vm vhd to Azure
     cmds:
-      - invoke vmimageupload
+      - invoke vmvhdupload
 
-  azvmimagelink:
-    desc: link vm image name to vm image VHD
+  azvmimagecreate:
+    desc: create vm image from vm vhd
     cmds:
-      - invoke vmimagelink
+      - invoke vmimagecreate
