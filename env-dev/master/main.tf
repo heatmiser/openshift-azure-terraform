@@ -11,6 +11,7 @@ module "master" {
   resource_group_name              = "${var.resource_group_name}"
   location                         = "${var.location}"
   images_resource_group            = "${var.images_resource_group}"
+  images_storage_account           = "${var.images_storage_account}"
   base_os_image                    = "${var.base_os_image}"
   ocp_cidr_block                   = "${var.ocp_cidr_block}"
   ocp_cidrsubnet_newbits           = "${var.ocp_cidrsubnet_newbits}"
