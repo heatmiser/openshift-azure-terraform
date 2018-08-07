@@ -420,7 +420,6 @@ def vmvhdupload(ctx):
 @task
 def vmimagecreate(ctx):
     """create vm image from vm vhd"""
-    print('Create VM image from one of the following VM VHDs in Azure:')
     getVarFromFile('01base.tfvars', 'baseconfig')
     vmimageshortname = baseconfig.base_os_image
     azimgrg = baseconfig.images_resource_group
@@ -467,7 +466,7 @@ def vmimagecreate(ctx):
     vhdliststring = vhdlistio.getvalue()
     vhdlistjson = json.loads(vhdliststring)
     vhdlist = []
-    print("Available VM image VHDs\n")
+    print("Create VM image from one of the following VM VHDs in Azure\n")
     print("%-3s %-50s" % ("ID", "Name"))
     print("%-3s %-50s" % ("--", "---------------------------------------------"))
     for i in range(len(vhdlistjson)):
