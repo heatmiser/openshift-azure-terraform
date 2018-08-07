@@ -381,20 +381,20 @@ def vmimageupload(ctx):
         packerjson = json.load(handle)
     handle.close()
     buildlist = packerjson['builds']
-    imagelist = []
+    vhdlist = []
     for i in range(len(buildlist)):
         for j in (buildlist[i]['files']):
             print("%-3s %-50s" % (i, os.path.splitext(j['name'])[0]+'.vhd'))
-            imagelist.append(os.path.splitext(j['name'])[0]+'.vhd')
+            vhdlist.append(os.path.splitext(j['name'])[0]+'.vhd')
     imageint = ''
-    while imageint not in (range(len(imagelist))):
-        imageindex = input("Please select desired VM image# 0-%s  > " % (len(imagelist) - 1))
+    while imageint not in (range(len(vhdlist))):
+        imageindex = input("Please select desired VM image# 0-%s  > " % (len(vhdlist) - 1))
         try:
             imageint = int(imageindex)
         except ValueError:
             imageindex  = ''
-    vmimage = packerdir+'/'+os.path.splitext(imagelist[imageint])[0]+'/'+imagelist[imageint]
-    vmimagename = imagelist[imageint]
+    vmimage = packerdir+'/'+os.path.splitext(vhdlist[imageint])[0]+'/'+vhdlist[imageint]
+    vmimagename = vhdlist[imageint]
     print("%s" % (vmimage))
     getVarFromFile('01base.tfvars', 'baseconfig')
     vmimageshortname = baseconfig.base_os_image
@@ -427,6 +427,33 @@ def vmimagelink(ctx):
     azimgstac = baseconfig.images_storage_account
     spinner = Spinner()
     spinner.start()
+    imagelistcmd = run(('az image list --resource-group %s') % (azimgrg), hide=True, warn=True)
+    spinner.stop()
+    imagelistio = StringIO(imagelistcmd.stdout)
+    imageliststring = imagelistio.getvalue()
+    imagelistjson = json.loads(imageliststring)
+    for i in range(len(imagelistjson)):
+        if imagelistjson[i]['name'] == vmimageshortname:
+            ansrStr = str(confirm(prompt='VM image '+vmimageshortname+' already exists in RG '+azimgrg+'.\nReplace with updated image?'))
+            if ansrStr == 'True':
+                spinner = Spinner()
+                spinner.start()
+                imagedelcmd = run(('az image delete --resource-group %s -n %s') % (azimgrg, vmimageshortname), hide=True, warn=True)
+                spinner.stop()
+                imagedelio = StringIO(imagedelcmd.stdout)
+                imagedeljson = json.load(imagedelio)
+                if imagedeljson['status'] == 'Succeeded':
+                    print("vmimage %s deleted successfully." % (vmimageshortname))
+                else:
+                    print("Error occured during vmimage %s delete request." % (vmimageshortname))
+                    print(StringIO(imagedelcmd.stderr.strip()))
+                    return
+            else:
+                print('Please edit 01base.tfvars and change base_os_image entry to a different value,')
+                print('then re-run clcmd azvmimagelink')
+                return
+    spinner = Spinner()
+    spinner.start()
     stackeycmd = run(('az storage account keys list --resource-group %s --account-name %s') % (azimgrg, azimgstac), hide=True, warn=True)
     spinner.stop()
     stackeyio = StringIO(stackeycmd.stdout)
@@ -439,22 +466,22 @@ def vmimagelink(ctx):
     vhdlistio = StringIO(vhdlistcmd.stdout)
     vhdliststring = vhdlistio.getvalue()
     vhdlistjson = json.loads(vhdliststring)
-    imagelist = []
+    vhdlist = []
     print("Available VM image VHDs\n")
     print("%-3s %-50s" % ("ID", "Name"))
     print("%-3s %-50s" % ("--", "---------------------------------------------"))
     for i in range(len(vhdlistjson)):
         print("%-3s %-50s" % (i, vhdlistjson[i]['name']))
-        imagelist.append(vhdlistjson[i]['name'])
+        vhdlist.append(vhdlistjson[i]['name'])
     while True:
         imageint = ''
-        while imageint not in (range(len(imagelist))):
-            imageindex = input("Please select desired VM image VHD ID# 0-%s  > " % (len(imagelist) - 1))
+        while imageint not in (range(len(vhdlist))):
+            imageindex = input("Please select desired VM image VHD ID# 0-%s  > " % (len(vhdlist) - 1))
             try:
                 imageint = int(imageindex)
             except ValueError:
                 imageindex  = ''
-        vmimagename = imagelist[imageint]
+        vmimagename = vhdlist[imageint]
         ansrStr = str(confirm(prompt='You entered "'+vmimagename+'" as the desired VM image VHD. Is this correct?'))
         if ansrStr == 'True':
             break
