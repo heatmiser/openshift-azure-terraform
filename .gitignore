@@ -30,7 +30,9 @@ env-*/node/variables.tf
 env-*/openvpn/variables-openvpn.tf
 env-*/openvpn/variables.tf
 modules/bastion/variables.tf
+modules/crsapp/main.tf
 modules/crsapp/variables.tf
+modules/crsreg/main.tf
 modules/crsreg/variables.tf
 modules/infra/variables.tf
 modules/master/variables.tf
