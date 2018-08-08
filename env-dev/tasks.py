@@ -353,15 +353,23 @@ def envinit(ctx):
 
 @task
 def sshgenkeypair(ctx):
-    """create ECDSA public/private key pair"""
+    """create RSA / ECDSA public/private key pair"""
     rootDir=os.getcwd()
     os.chdir(rootDir+'/ssh')
+    input_list = ["RSA", "ECDSA"]
+    keytype = input("Please choose desired SSH key type to generate " + ' '.join(input_list) + " > ")
     basekeyname = input("Please enter a base prefix to use for a newly generated SSH key pair > ")
     keycomment = input("Please enter a comment for the public key, format like 'username@domain.com' recommended > ")
-    genkeypair = run(('ssh-keygen -t ecdsa -b 521 -C %s -f %s_ecdsa-sha2-nistp521 -N \'\'') % (keycomment, basekeyname), hide=True, warn=True)
-    print('Adding JSON compatible version of private key...')
-    keyfile = os.getcwd()+'/%s_ecdsa-sha2-nistp521' % basekeyname
-    keyfile4json = os.getcwd()+'/%s_ecdsa-sha2-nistp521.forJSON' % basekeyname
+    if keytype == 'RSA':
+        genkeypair = run(('ssh-keygen -t rsa -b 4096 -C %s -f %s_id_rsa -N \'\'') % (keycomment, basekeyname), hide=True, warn=True)
+        print('Adding JSON compatible version of private key...')
+        keyfile = os.getcwd()+'/%s_id_rsa' % basekeyname
+        keyfile4json = os.getcwd()+'/%s_id_rsa.forJSON' % basekeyname
+    elif keytype == 'ECDSA':
+        genkeypair = run(('ssh-keygen -t ecdsa -b 521 -C %s -f %s_ecdsa-sha2-nistp521 -N \'\'') % (keycomment, basekeyname), hide=True, warn=True)
+        print('Adding JSON compatible version of private key...')
+        keyfile = os.getcwd()+'/%s_ecdsa-sha2-nistp521' % basekeyname
+        keyfile4json = os.getcwd()+'/%s_ecdsa-sha2-nistp521.forJSON' % basekeyname
     shutil.copy(keyfile,keyfile4json)
     # Note: this sed command does the same thing, would have to add escapes for python run command: sed ':a;N;s/\n/\\n/;ta'
     sed4json = run(('cat "%s" | sed \':a;N;$!ba;s/\\n/\\\\n/g\' > "%s"') % (keyfile, keyfile4json), hide=True, warn=True)
