@@ -355,7 +355,6 @@ def envinit(ctx):
 def sshgenkeypair(ctx):
     """create RSA / ECDSA public/private key pair"""
     rootDir=os.getcwd()
-    os.chdir(rootDir+'/ssh')
     input_list = ["RSA", "ECDSA"]
     keytype = input("Please choose desired SSH key type to generate " + ' '.join(input_list) + " > ")
     basekeyname = input("Please enter a base prefix to use for a newly generated SSH key pair > ")
@@ -375,7 +374,6 @@ def sshgenkeypair(ctx):
     sed4json = run(('cat "%s" | sed \':a;N;$!ba;s/\\n/\\\\n/g\' > "%s"') % (keyfile, keyfile4json), hide=True, warn=True)
     str(sed4json).strip()
     print('SSH key pair generation complete.')
-    os.chdir(rootDir)
     return basekeyname
 
 @task
