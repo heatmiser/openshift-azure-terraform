@@ -31,16 +31,16 @@ fi
 
 if [[ ! -f "$bindir/terraform" ]]; then
     echo "'terraform' not found, configuring..."
-    wget https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
-    unzip terraform_0.11.7_linux_amd64.zip
-    rm terraform_0.11.7_linux_amd64.zip
+    wget https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
+    unzip terraform_0.11.8_linux_amd64.zip
+    rm terraform_0.11.8_linux_amd64.zip
 fi
 
 if [[ ! -f "$bindir/packer" ]]; then                                        
     echo "'packer' not found, configuring..."                                  
-    wget https://releases.hashicorp.com/packer/1.2.4/packer_1.2.4_linux_amd64.zip
-    unzip packer_1.2.4_linux_amd64.zip
-    rm -f packer_1.2.4_linux_amd64.zip
+    wget https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
+    unzip packer_1.2.5_linux_amd64.zip
+    rm -f packer_1.2.5_linux_amd64.zip
 fi    
 
 

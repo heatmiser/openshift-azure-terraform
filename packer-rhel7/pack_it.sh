@@ -14,6 +14,10 @@ if [ "$PACKER" == "" ]; then
         export PACKER="$(command -v ./packer)"
     fi
 fi
+PROJBINPACKER=$(readlink -f ../bin/packer)
+if command -v $PROJBINPACKER 2>/dev/null; then
+    export PACKER=$PROJBINPACKER
+fi
 if [ "$PACKER" == "" ]; then
     echo "packer not found, exiting..."
     exit 1

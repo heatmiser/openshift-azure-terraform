@@ -15,26 +15,34 @@
     ],
     "type": "shell",
     "scripts": [
-      "scripts/base-rhel.sh",
-      "scripts/cloud-azure-rhel7.sh",
-      "scripts/rhnunregister.sh",
-      "scripts/cleanup.sh",
-      "scripts/waagent.sh",
-      "scripts/zerodisk.sh",
-      "scripts/nosshpasswords.sh"
+      "scripts/base-rhel.sh"
     ],
+    "expect_disconnect": "true",
     "execute_command": "{{.Vars}} bash '{{.Path}}'",
     "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
   }, {
     "type": "shell",
     "scripts": [
-      "scripts/base-rhel.sh",
-      "scripts/cloud-kvm-rhel7.sh",
-      "scripts/rhnunregister.sh",
+      "scripts/cloud-azure-rhel7.sh",
       "scripts/cleanup.sh",
+      "scripts/rhnunregister.sh",
+      "scripts/waagent.sh",
       "scripts/zerodisk.sh",
       "scripts/nosshpasswords.sh"
     ],
+    "pause_before": "15s",
+    "execute_command": "{{.Vars}} bash '{{.Path}}'",
+    "only": ["rhel-7-cloud-azure", "rhel-7-cloud-ci-azure"]
+  }, {
+    "type": "shell",
+    "scripts": [
+      "scripts/cloud-kvm-rhel7.sh",
+      "scripts/cleanup.sh",
+      "scripts/rhnunregister.sh",
+      "scripts/zerodisk.sh",
+      "scripts/nosshpasswords.sh"
+    ],
+    "pause_before": "15s",
     "execute_command": "{{.Vars}} bash '{{.Path}}'",
     "only": ["rhel-7-cloud-kvm", "rhel-7-cloud-ci-kvm"]
   }],

@@ -11,16 +11,10 @@ subscription-manager repos --enable="rhel-7-server-rpms"
 # Install latest repo update
 yum update -y
 yum -y update
-yum -y install wget curl
+yum -y install wget curl iscsi-initiator-utils device-mapper-multipath
 
 # Install root certificates
 yum -y install ca-certificates
 
-# Only install cloud-init on "cloud-ci-" hostname systems
-
-if hostname -f|grep -e "cloud-ci-" >/dev/null; then
-   echo $(date) " - Installing cloud-init"
-   subscription-manager repos --enable=rhel-7-server-rh-common-rpms
-   yum -y install cloud-init
-   systemctl enable cloud-init
-fi
+# Have to reboot to new kernel so dracut operates on correct kernel/drivers
+reboot

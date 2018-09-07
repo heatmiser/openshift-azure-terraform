@@ -3,20 +3,21 @@ yum -y install grub2-tools
 
 # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sec-GRUB_2_over_Serial_Console.html#sec-Configuring_GRUB_2
 # already did this in kickstart?
-#cat > /etc/default/grub <<EOF
-#GRUB_DEFAULT=0
-#GRUB_HIDDEN_TIMEOUT=0
-#GRUB_HIDDEN_TIMEOUT_QUIET=true
-#GRUB_TIMEOUT=1
-#GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
-#GRUB_DEFAULT=saved
-#GRUB_DISABLE_SUBMENU=true
-#GRUB_TERMINAL=serial
-#GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
-#GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8"
-#GRUB_TERMINAL_OUTPUT="console"
-#GRUB_DISABLE_RECOVERY="true"
-#EOF
+cat > /etc/default/grub <<EOF
+GRUB_DEFAULT=0
+GRUB_HIDDEN_TIMEOUT=0
+GRUB_HIDDEN_TIMEOUT_QUIET=true
+GRUB_TIMEOUT=1
+GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
+GRUB_DEFAULT=saved
+GRUB_DISABLE_SUBMENU=true
+GRUB_TERMINAL=serial
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+GRUB_CMDLINE_LINUX=""
+GRUB_CMDLINE_LINUX_DEFAULT=""
+GRUB_TERMINAL_OUTPUT="console"
+GRUB_DISABLE_RECOVERY="true"
+EOF
 
 #grub2-mkconfig -o /boot/grub2/grub.cfg
 
@@ -25,14 +26,9 @@ subscription-manager repos --enable="rhel-7-server-extras-rpms"
 
 # Install WALinuxAgent
 yum install -y WALinuxAgent
-systemctl enable waagent.service
-
-# Unregister Red Hat subscription
-#subscription-manager unregister
-# this has to be moved to final packer script, otherwise won't run be able to update
 
 # Enable waaagent at boot-up
-systemctl enable waagent
+systemctl enable waagent.service
 
 # Disable the root account
 # usermod root -p '!!'
@@ -72,7 +68,14 @@ rm -f /lib/udev/rules.d/75-persistent-net-generator.rules /etc/udev/rules.d/70-p
 #yum -y install haveged
 
 # Installs cloudinit, epel is required
-#yum -y install cloud-init
+# Only install cloud-init on "cloud-ci-" hostname systems
+
+if hostname -f|grep -e "cloud-ci-" >/dev/null; then
+   echo $(date) " - Installing cloud-init"
+   subscription-manager repos --enable=rhel-7-server-rh-common-rpms
+   yum -y install cloud-init
+   systemctl enable cloud-init
+fi
 
 # configure cloud init 'cloud-user' as sudo
 # this is not configured via default cloudinit config

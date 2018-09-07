@@ -35,7 +35,14 @@ rm -f /lib/udev/rules.d/75-persistent-net-generator.rules /etc/udev/rules.d/70-p
 #yum -y install haveged
 
 # Installs cloudinit, epel is required
-#yum -y install cloud-init
+# Only install cloud-init on "cloud-ci-" hostname systems
+
+if hostname -f|grep -e "cloud-ci-" >/dev/null; then
+   echo $(date) " - Installing cloud-init"
+   subscription-manager repos --enable=rhel-7-server-rh-common-rpms
+   yum -y install cloud-init
+   systemctl enable cloud-init
+fi
 
 # configure cloud init 'cloud-user' as sudo
 # this is not configured via default cloudinit config
