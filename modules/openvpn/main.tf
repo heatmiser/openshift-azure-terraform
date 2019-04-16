@@ -72,7 +72,7 @@ resource "azurerm_network_security_group" "openvpn_nsg" {
     protocol                   = "Udp"
     source_port_range          = "*"
     destination_port_range     = "1194"
-    source_address_prefix      = "104.55.42.149/32"
+    source_address_prefix      = "97.81.192.18/32"
     destination_address_prefix = "*"
   }
 }
