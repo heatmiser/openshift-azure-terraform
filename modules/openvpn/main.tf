@@ -191,6 +191,10 @@ resource "azurerm_virtual_machine" "openvpn-rsa" {
     lun               = 0
     managed_disk_type = "${var.data_storage_account_tier}_${var.storage_account_replication_type}"
   }
+
+  lifecycle {
+    ignore_changes = ["storage_os_disk", "os_profile", "storage_data_disk"]
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "openvpnPrep-rsa" {
