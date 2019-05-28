@@ -56,7 +56,7 @@ For local containers, an Azure-CLI based container is a good start...
 
 Starting with a Dockerfile or other container image build script, the above list of tools and utilities can be included to build a container image that can then be upgraded/improved on an ongoing basis.  For the go-task utility, recommended to install 64-bit and 32-bit versions, rename as such and symlink to the 'task' the version that works without error, as some base container images might not provided requisite library support for some 64-bit binaries. 
 
-TO-DO Include documentation and project files to provide support for helping users to quickly build their own Azure-CLI container images
+**New automation utility** Documentation, scripted utilities and project files to provide support for helping users to quickly get up to speed on deploying Red Hat OCP 3.11 on Azure: https://github.com/heatmiser/openshift-azure-terraform/tree/release-3.11/deployViaTasks.md
 
 
 ### Generate SSH Keys
