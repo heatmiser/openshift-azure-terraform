@@ -1,11 +1,11 @@
-# openshift-azure-terraform - Release 3.9
+# openshift-azure-terraform - Release 3.11
 OpenShift Container Platform on Azure deployment via Terraform
 
 **For OpenShift Origin refer to https://github.com/heatmiser/origin-azure-terraform**
 
-## OpenShift Container Platform 3.9 with Username / Password authentication for OpenShift
+## OpenShift Container Platform 3.11 with Username / Password authentication for OpenShift
 
-The OpenShift architecture provided by these Terraform templates is based on the architecture outlined by [this](https://github.com/Microsoft/openshift-container-platform/tree/release-3.9) Azure Quickstart Template. The Microsoft OCP ARM Template repo is forked [here](https://github.com/heatmiser/openshift-container-platform/tree/release-3.9/) with some minor changes and additions made, as the automation code located in the [scripts directory](https://github.com/heatmiser/openshift-container-platform/tree/release-3.9/scripts) is utilized by portions of these Terraform templates. Changes that occur to the Microsoft OCP ARM template and accompanying automation deployment scripts that occur over time are periodically merged and reflected here.
+The OpenShift architecture provided by these Terraform templates is based on the architecture outlined by [this](https://github.com/Microsoft/openshift-container-platform/tree/release-3.11) Azure Quickstart Template. The Microsoft OCP ARM Template repo is forked [here](https://github.com/heatmiser/openshift-container-platform/tree/release-3.11/) with some minor changes and additions made, as the automation code located in the [scripts directory](https://github.com/heatmiser/openshift-container-platform/tree/release-3.11/scripts) is utilized by portions of these Terraform templates. Changes that occur to the Microsoft OCP ARM template and accompanying automation deployment scripts that occur over time are periodically merged and reflected here.
 
 This project provides Terraform templating for deploying OpenShift Container Platform with basic username / password for authentication to OpenShift. It includes the following resources:
 
@@ -209,4 +209,4 @@ To create additional (non-admin) users in your environment, login to your master
 
 ### Additional OpenShift Configuration Options
  
-You can configure additional settings per the official (<a href="https://docs.openshift.com/container-platform/3.9/welcome/index.html" target="_blank">OpenShift Enterprise Documentation</a>).
+You can configure additional settings per the official (<a href="https://docs.openshift.com/container-platform/3.11/welcome/index.html" target="_blank">OpenShift Enterprise Documentation</a>).
