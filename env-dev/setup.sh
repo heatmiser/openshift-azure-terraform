@@ -17,8 +17,8 @@ echo "Checking for necessary tools, configuring if necessary..."
 if [[ ! -f "$bindir/task" ]]; then
     echo "'task' not found, configuring..."
     #osname=$(cat /etc/os-release | grep '^NAME' | cut -f2 -d'=')
-    wget https://github.com/go-task/task/releases/download/v2.0.3/task_linux_amd64.tar.gz
-    wget https://github.com/go-task/task/releases/download/v2.0.3/task_linux_386.tar.gz
+    wget https://github.com/go-task/task/releases/download/v3.0.0/task_linux_amd64.tar.gz
+    wget https://github.com/go-task/task/releases/download/v3.0.0/task_linux_386.tar.gz
     tar xzvf task_linux_amd64.tar.gz task && mv task task64
     tar xzvf task_linux_386.tar.gz task && mv task task32
     rm task_linux_amd64.tar.gz task_linux_386.tar.gz
@@ -31,16 +31,16 @@ fi
 
 if [[ ! -f "$bindir/terraform" ]]; then
     echo "'terraform' not found, configuring..."
-    wget https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
-    unzip terraform_0.11.8_linux_amd64.zip
-    rm terraform_0.11.8_linux_amd64.zip
+    wget https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
+    unzip terraform_0.12.29_linux_amd64.zip
+    rm terraform_0.12.29_linux_amd64.zip
 fi
 
 if [[ ! -f "$bindir/packer" ]]; then                                        
     echo "'packer' not found, configuring..."                                  
-    wget https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
-    unzip packer_1.2.5_linux_amd64.zip
-    rm -f packer_1.2.5_linux_amd64.zip
+    wget https://releases.hashicorp.com/packer/1.6.5/packer_1.6.5_linux_amd64.zip
+    unzip packer_1.6.5_linux_amd64.zip
+    rm -f packer_1.6.5_linux_amd64.zip
 fi    
 
 
@@ -50,7 +50,7 @@ elif command -v ./jq 2>/dev/null; then
     echo "jq present, continuing..."
 else
     echo "jq not found, configuring..."
-    wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+    wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     ln -s jq-linux64 jq
 fi
 
